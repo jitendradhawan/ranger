@@ -17,6 +17,19 @@ Ranger provides two types of discovery out of the box:
 - Sharded service discovery with service provider node healthchecks
   We'll take these up, one by one.
 
+### Bill of materials
+You could use the ranger-bom using the following in your dependency management.
+
+```
+<dependency>
+    <groupId>io.appform.ranger</groupId>
+    <artifactId>ranger-bom</artifactId>
+    <version>${ranger.version}</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+```
+
 ###Build instructions
 - Clone the source:
 
@@ -31,8 +44,7 @@ Use the following maven dependency:
 ```
 <dependency>
     <groupId>io.appform.ranger</groupId>
-    <artifactId>ranger</artifactId>
-    <versio>1.0-RC12</version>
+    <artifactId>ranger-core</artifactId>
 </dependency>
 ```
 
@@ -344,7 +356,6 @@ If you are using a dropwizard project, you could use the service discovery bundl
 <dependency>
     <groupId>io.appform.ranger</groupId>
     <artifactId>ranger-discovery-bundle</artifactId>
-    <version>${ranger.version}</version>
 </dependency>
 ```
 
@@ -444,7 +455,6 @@ If you are using a dropwizard project, you could use the service discovery bundl
 <dependency>
     <groupId>io.appform.ranger</groupId>
     <artifactId>ranger-discovery-bundle</artifactId>
-    <version>${ranger.version}</version>
 </dependency>
 ```
 
