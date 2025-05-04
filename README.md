@@ -44,8 +44,7 @@ Use the following maven dependency:
 ```
 <dependency>
     <groupId>io.appform.ranger</groupId>
-    <artifactId>ranger</artifactId>
-    <versio>1.1.0</version>
+    <artifactId>ranger-core</artifactId>
 </dependency>
 ```
 
@@ -357,7 +356,6 @@ If you are using a dropwizard project, you could use the service discovery bundl
 <dependency>
     <groupId>io.appform.ranger</groupId>
     <artifactId>ranger-discovery-bundle</artifactId>
-    <version>${ranger.version}</version>
 </dependency>
 ```
 
@@ -457,7 +455,6 @@ If you are using a dropwizard project, you could use the service discovery bundl
 <dependency>
     <groupId>io.appform.ranger</groupId>
     <artifactId>ranger-discovery-bundle</artifactId>
-    <version>${ranger.version}</version>
 </dependency>
 ```
 
