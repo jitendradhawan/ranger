@@ -17,6 +17,7 @@
 package io.appform.ranger.discovery.core;
 
 import com.google.common.base.Strings;
+import javax.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,8 +39,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class ServiceDiscoveryConfiguration {
 
-    @NotNull
-    @NotEmpty
+    @NotBlank
     private String id = Constants.DEFAULT_ID;
 
     @NotNull

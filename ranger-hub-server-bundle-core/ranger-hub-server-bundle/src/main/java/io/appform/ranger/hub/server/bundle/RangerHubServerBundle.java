@@ -197,9 +197,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
 
         @Override
         public List<RangerHubClient<ShardInfo, ListBasedServiceRegistry<ShardInfo>>> visit(RangerZkUpstreamConfiguration rangerZkConfiguration) {
-            return rangerZkConfiguration.getZookeepers().stream()
-                    .map(zk -> addCuratorAndGetZkHubClient(zk, rangerZkConfiguration))
-                    .toList();
+            return List.of(addCuratorAndGetZkHubClient(rangerZkConfiguration.getZookeeper(), rangerZkConfiguration));
         }
 
         @Override
