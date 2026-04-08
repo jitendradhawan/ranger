@@ -15,6 +15,7 @@
  */
 package io.appform.ranger.zookeeper.servicefinderhub;
 
+import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.ranger.core.finderhub.ServiceDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.zookeeper.util.PathBuilder;
@@ -52,6 +53,7 @@ public class ZkServiceDataSource implements ServiceDataSource {
 
     @Override
     @SneakyThrows
+    @MonitoredFunction
     public Collection<Service> services() {
         val children = curatorFramework.getChildren()
                 .forPath(PathBuilder.REGISTERED_SERVICES_PATH);

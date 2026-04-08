@@ -47,6 +47,16 @@
             <artifactId>failsafe</artifactId>
             <version>${failsafe.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-metrics</artifactId>
+            <version>${dropwizard.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.appform.functionmetrics</groupId>
+            <artifactId>function-metrics</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

@@ -21,6 +21,7 @@ import dev.failsafe.RetryPolicy;
 import io.appform.ranger.core.model.NodeDataStoreConnector;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.util.Exceptions;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.zookeeper.util.PathBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -162,8 +163,10 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
 
     @Override
     public boolean isActive() {
-        return curatorFramework != null && curatorFramework.getZookeeperClient() != null
+        var zkConnectionActive = curatorFramework != null && curatorFramework.getZookeeperClient() != null
                 && curatorFramework.getZookeeperClient().isConnected();
+        MetricRecorder.recordZkConnection(zkConnectionActive);
+        return zkConnectionActive;
     }
 
     protected boolean isStarted() {

@@ -28,6 +28,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @AllArgsConstructor
 public class HttpClientConfig {
+    String id;
     String host;
     int port;
     boolean secure;

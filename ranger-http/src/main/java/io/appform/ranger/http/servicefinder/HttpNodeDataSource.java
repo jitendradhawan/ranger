@@ -15,9 +15,11 @@
  */
 package io.appform.ranger.http.servicefinder;
 
+import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.http.common.HttpNodeDataStoreConnector;
 import io.appform.ranger.http.config.HttpClientConfig;
 import io.appform.ranger.http.serde.HTTPResponseDataDeserializer;
@@ -53,12 +55,15 @@ public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> ex
     }
 
     @Override
+    @MonitoredFunction
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {
         return Optional.of(httpCommunicator.listNodes(service, deserializer));
     }
 
     @Override
     public boolean isActive() {
-        return upstreamAvailable.get();
+        var httpUpstreamAvailable = upstreamAvailable.get();
+        MetricRecorder.recordHttpUpstreamAvailability(this.config.getId(), httpUpstreamAvailable);
+        return httpUpstreamAvailable;
     }
 }

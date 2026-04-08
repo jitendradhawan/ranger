@@ -15,9 +15,11 @@
  */
 package io.appform.ranger.zookeeper.servicefinder;
 
+import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.zookeeper.common.ZkNodeDataStoreConnector;
 import io.appform.ranger.zookeeper.common.ZkStoreType;
 import io.appform.ranger.zookeeper.serde.ZkNodeDataDeserializer;
@@ -48,6 +50,7 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
     }
 
     @Override
+    @MonitoredFunction
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {
         return checkForUpdateOnZookeeper(deserializer);
     }

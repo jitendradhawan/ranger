@@ -17,6 +17,7 @@ package io.appform.ranger.http.serviceprovider;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.ranger.core.model.NodeDataSink;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
@@ -50,6 +51,7 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
     }
 
     @Override
+    @MonitoredFunction
     public void updateState(S serializer, ServiceNode<T> serviceNode) {
         requireNonNull(config, "client config has not been set for node data");
         requireNonNull(mapper, "mapper has not been set for node data");

@@ -38,6 +38,9 @@ import java.util.Set;
 @NoArgsConstructor
 public class ServiceDiscoveryConfiguration {
 
+    @NotNull
+    @NotEmpty
+    private String id = Constants.DEFAULT_ID;
 
     @NotNull
     @NotEmpty

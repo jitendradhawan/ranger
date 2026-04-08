@@ -22,14 +22,6 @@ import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.http.config.HttpClientConfig;
 import io.appform.ranger.http.model.ServiceDataSourceResponse;
 import io.appform.ranger.http.serde.HTTPResponseDataDeserializer;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,6 +30,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Direct api based communication
