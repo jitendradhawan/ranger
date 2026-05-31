@@ -70,6 +70,7 @@ class ServiceProviderIntegrationTest {
         registerService("localhost-4", 9003, 2, anotherFile);
 
         serviceFinder = ServiceFinderBuilders.<TestNodeData>shardedFinderBuilder()
+                .withMetricId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")
@@ -135,6 +136,7 @@ class ServiceProviderIntegrationTest {
         final HealthUpdateHandler<TestNodeData> healthUpdateHandler = new LastUpdatedHandler<TestNodeData>()
                 .setNext(new HealthStatusHandler<TestNodeData>());
         val serviceProvider = ServiceProviderBuilders.<TestNodeData>shardedServiceProviderBuilder()
+                .withMetricId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")

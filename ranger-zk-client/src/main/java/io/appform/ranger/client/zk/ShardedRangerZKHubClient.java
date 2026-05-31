@@ -41,6 +41,7 @@ public class ShardedRangerZKHubClient<T>
     @Override
     protected ServiceFinderFactory<T, MapBasedServiceRegistry<T>> getFinderFactory() {
         return ZkShardedServiceFinderFactory.<T>builder()
+                .metricId(getMetricId())
                 .curatorFramework(getCuratorFramework())
                 .connectionString(getConnectionString())
                 .nodeRefreshIntervalMs(getNodeRefreshTimeMs())

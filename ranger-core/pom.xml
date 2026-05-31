@@ -51,11 +51,16 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-metrics</artifactId>
             <version>${dropwizard.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.appform.functionmetrics</groupId>
             <artifactId>function-metrics</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

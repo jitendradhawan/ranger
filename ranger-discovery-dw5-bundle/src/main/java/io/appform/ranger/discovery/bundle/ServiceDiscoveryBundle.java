@@ -27,6 +27,11 @@ import io.appform.ranger.common.server.ShardInfo;
 import io.appform.ranger.core.finder.serviceregistry.MapBasedServiceRegistry;
 import io.appform.ranger.core.healthcheck.Healthcheck;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
+import io.appform.ranger.core.healthcheck.updater.HealthStatusHandler;
+import io.appform.ranger.core.healthcheck.updater.HealthUpdateHandler;
+import io.appform.ranger.core.healthcheck.updater.LastUpdatedHandler;
+import io.appform.ranger.core.healthcheck.updater.RoutingWeightHandler;
+import io.appform.ranger.core.healthcheck.updater.StartupTimeHandler;
 import io.appform.ranger.core.healthservice.TimeEntity;
 import io.appform.ranger.core.healthservice.monitor.IsolatedHealthMonitor;
 import io.appform.ranger.core.model.ServiceNode;
@@ -74,6 +79,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.appform.ranger.discovery.bundle.Constants.LOCAL_ADDRESSES;
@@ -188,6 +194,10 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         return Collections.emptyList();
     }
 
+    protected Supplier<Double> getWeightSupplier() {
+        return () -> 1.0;
+    }
+
     @SuppressWarnings("unused")
     protected int getPort(T configuration) {
         Preconditions.checkArgument(Constants.DEFAULT_PORT != serviceDiscoveryConfiguration.getPublishedPort()
@@ -279,6 +289,10 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                    : serviceDiscoveryConfiguration.getDropwizardCheckInterval();
         val dwMonitoringStaleness = Math.max(serviceDiscoveryConfiguration.getDropwizardCheckStaleness(),
                 dwMonitoringInterval + 1);
+        final HealthUpdateHandler<ShardInfo> shardInfoHealthUpdateHandler = new LastUpdatedHandler<ShardInfo>()
+                .setNext(new HealthStatusHandler<>())
+                .setNext(new RoutingWeightHandler<>(getWeightSupplier().get()))
+                .setNext(new StartupTimeHandler<>());
         val serviceProviderBuilder = ServiceProviderBuilders.<ShardInfo>shardedServiceProviderBuilder()
                 .withMetricId(DEFAULT_DATA_SINK_ID)
                 .withCuratorFramework(curator)
@@ -304,7 +318,8 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                         new TimeEntity(initialDelayForMonitor, dwMonitoringInterval, TimeUnit.SECONDS),
                         dwMonitoringStaleness * 1_000L, environment.healthChecks()))
                 .withHealthUpdateIntervalMs(serviceDiscoveryConfiguration.getRefreshTimeMs())
-                .withStaleUpdateThresholdMs(10000);
+                .withStaleUpdateThresholdMs(10000)
+                .healthUpdateHandler(shardInfoHealthUpdateHandler);
 
         val healthMonitors = getHealthMonitors();
         if (healthMonitors != null && !healthMonitors.isEmpty()) {

@@ -47,6 +47,7 @@ class ServiceFinderHubTest {
             new DynamicDataSource(Lists.newArrayList(new Service("NS", "PRE_REGISTERED_SERVICE"))),
             service ->
                     new TestServiceFinderBuilder()
+                            .withMetricId("test-metric")
                             .withNamespace(service.getNamespace())
                             .withServiceName(service.getServiceName())
                             .withDeserializer(new Deserializer<TestNodeData>() {
@@ -93,6 +94,7 @@ class ServiceFinderHubTest {
     void testDelayedServiceAddition() {
         val delayedHub = new ServiceFinderHub<>(new DynamicDataSource(Lists.newArrayList(new Service("NS", "SERVICE"))),
                 service ->  new TestServiceFinderBuilder()
+                        .withMetricId("test-metric")
                         .withNamespace(service.getNamespace())
                         .withServiceName(service.getServiceName())
                         .withDeserializer(new Deserializer<TestNodeData>() {})
@@ -101,6 +103,7 @@ class ServiceFinderHubTest {
         Assertions.assertThrows(IllegalStateException.class, delayedHub::start);
         val serviceFinderHub = new ServiceFinderHub<>(new DynamicDataSource(Lists.newArrayList(new Service("NS", "SERVICE"))),
                 service ->  new TestServiceFinderBuilder()
+                        .withMetricId("test-metric")
                         .withNamespace(service.getNamespace())
                         .withServiceName(service.getServiceName())
                         .withDeserializer(new Deserializer<TestNodeData>() {})
@@ -114,6 +117,7 @@ class ServiceFinderHubTest {
     @Test
     void testDynamicServiceAdditionWithNonDynamicDataSource() {
         val serviceFinderHub = new ServiceFinderHub<>(new StaticDataSource(new HashSet<>()), service -> new TestServiceFinderBuilder()
+                .withMetricId("test-metric")
                 .withNamespace(service.getNamespace())
                 .withServiceName(service.getServiceName())
                 .withDeserializer(new Deserializer<TestNodeData>() {
@@ -135,6 +139,7 @@ class ServiceFinderHubTest {
                         new DynamicDataSource(Lists.newArrayList(new Service("NS", "PRE_REGISTERED_SERVICE"))),
                         service ->
                                 new TestServiceFinderBuilder()
+                                        .withMetricId("test-metric")
                                         .withNamespace(service.getNamespace())
                                         .withServiceName(service.getServiceName())
                                         .withNodeSelector(new WeightedRandomServiceNodeSelector<>(
@@ -146,6 +151,16 @@ class ServiceFinderHubTest {
                                         .withDeserializer(new Deserializer<TestNodeData>() {
                                         })
                                         .withDataSource(new NodeDataSource<>() {
+                                            @Override
+                                            public String getMetricId() {
+                                                return "testVaryingWeights";
+                                            }
+
+                                            @Override
+                                            public DataStoreType getDataStoreType() {
+                                                return DataStoreType.HTTP;
+                                            }
+
                                             @Override
                                             public Optional<List<ServiceNode<TestNodeData>>> refresh(
                                                     final Deserializer<TestNodeData> deserializer)
@@ -229,6 +244,7 @@ class ServiceFinderHubTest {
                         new DynamicDataSource(Lists.newArrayList(new Service("NS", "PRE_REGISTERED_SERVICE"))),
                         service ->
                                 new TestServiceFinderBuilder()
+                                        .withMetricId("test-metric")
                                         .withNamespace(service.getNamespace())
                                         .withServiceName(service.getServiceName())
                                         .withNodeSelector(new WeightedRandomServiceNodeSelector<>(
@@ -240,6 +256,16 @@ class ServiceFinderHubTest {
                                         .withDeserializer(new Deserializer<TestNodeData>() {
                                         })
                                         .withDataSource(new NodeDataSource<>() {
+                                            @Override
+                                            public String getMetricId() {
+                                                return "testVaryingNodeAge";
+                                            }
+
+                                            @Override
+                                            public DataStoreType getDataStoreType() {
+                                                return DataStoreType.HTTP;
+                                            }
+
                                             @Override
                                             public Optional<List<ServiceNode<TestNodeData>>> refresh(
                                                     final Deserializer<TestNodeData> deserializer)
@@ -323,6 +349,7 @@ class ServiceFinderHubTest {
         @Override
         public ServiceFinder<TestNodeData, MapBasedServiceRegistry<TestNodeData>> buildFinder(Service service) {
             val finder = new TestServiceFinderBuilder()
+                    .withMetricId("test-metric")
                     .withNamespace(service.getNamespace())
                     .withServiceName(service.getServiceName())
                     .withDeserializer(new Deserializer<TestNodeData>() {})
@@ -359,7 +386,7 @@ private static class TestServiceFinderHubBuilder extends ServiceFinderHubBuilder
         }
 
         @Override
-        protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(Service service) {
+        protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(String metricId, Service service) {
             return testNodeDataSource;
         }
 

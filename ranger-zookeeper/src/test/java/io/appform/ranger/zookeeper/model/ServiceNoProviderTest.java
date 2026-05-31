@@ -54,6 +54,7 @@ class ServiceNoProviderTest {
     @Test
     void testBasicDiscovery() {
         val serviceFinder = ServiceFinderBuilders.<TestNodeData>shardedFinderBuilder()
+                .withMetricId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")
@@ -79,6 +80,7 @@ class ServiceNoProviderTest {
     @Test
     void testBasicDiscoveryRR() {
         val serviceFinder = ServiceFinderBuilders.<TestNodeData>shardedFinderBuilder()
+                .withMetricId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")
