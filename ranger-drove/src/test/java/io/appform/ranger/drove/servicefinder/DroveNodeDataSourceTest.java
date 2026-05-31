@@ -75,11 +75,10 @@ class DroveNodeDataSourceTest {
                                                        Map.of(),
                                                        List.of(new ExposedAppInfo.ExposedHost("h1", 100, TCP),
                                                                new ExposedAppInfo.ExposedHost("h2", 100, TCP)))));
-        val ds = new DroveNodeDataSource<DNodeData, DNodeDataDeserializer>(
+        val ds = new DroveNodeDataSource<DNodeData, DNodeDataDeserializer>("testDroveSource",
                 service,
                 config,
-                MAPPER,
-                droveClient);
+                MAPPER, droveClient);
         ds.start();
         val res = ds.refresh(new DNodeDataDeserializer()).orElse(null);
         assertNotNull(res);
@@ -101,11 +100,10 @@ class DroveNodeDataSourceTest {
 
         when(droveClient.listNodes(any(Service.class)))
                 .thenThrow(new DroveCommunicationException("test"));
-        val ds = new DroveNodeDataSource<DNodeData, DNodeDataDeserializer>(
+        val ds = new DroveNodeDataSource<DNodeData, DNodeDataDeserializer>("testDroveSource",
                 service,
                 config,
-                MAPPER,
-                droveClient);
+                MAPPER, droveClient);
         ds.start();
         val res = ds.refresh(new DNodeDataDeserializer()).orElse(null);
         assertNull(res);

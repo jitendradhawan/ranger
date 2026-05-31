@@ -39,6 +39,7 @@ import static java.util.Objects.requireNonNull;
 @SuperBuilder
 public class SimpleRangerZKClient<T> extends AbstractRangerClient<T, MapBasedServiceRegistry<T>> {
 
+    private String metricId;
     private final String serviceName;
     private final String namespace;
     private final ObjectMapper mapper;
@@ -55,6 +56,7 @@ public class SimpleRangerZKClient<T> extends AbstractRangerClient<T, MapBasedSer
     public void start() {
         log.info("Starting the service finder");
 
+        requireNonNull(metricId, "metricId can't be null");
         requireNonNull(mapper, "Mapper can't be null");
         requireNonNull(namespace, "namespace can't be null");
         requireNonNull(deserializer, "deserializer can't be null");
@@ -78,6 +80,7 @@ public class SimpleRangerZKClient<T> extends AbstractRangerClient<T, MapBasedSer
         }
 
         this.serviceFinder = ServiceFinderBuilders.<T>shardedFinderBuilder()
+                .withMetricId(metricId)
                 .withCuratorFramework(curatorFramework)
                 .withNamespace(namespace)
                 .withServiceName(serviceName)

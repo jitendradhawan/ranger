@@ -27,6 +27,7 @@ import io.appform.ranger.core.model.ServiceRegistry;
 import io.appform.ranger.core.signals.Signal;
 import io.appform.ranger.core.util.Exceptions;
 import io.appform.ranger.core.util.FinderUtils;
+import io.appform.ranger.core.util.MetricRecorder;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -139,8 +140,8 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
         log.debug("Checking for updates on data source for service: {}",
                   serviceRegistry.getService().getServiceName());
         var callFailed = false;
-        if (nodeDataSource.isActive()) { //Source should implement circuit breaker to fail fast and reopen after some
-            // time
+        if (nodeDataSource.isActive()) { //Source should implement circuit breaker to fail fast and reopen after some time
+            val stopwatch = Stopwatch.createStarted();
             try {
                 val nodeList = nodeDataSource.refresh(deserializer).orElse(null);
                 if (null != nodeList) {
@@ -150,6 +151,8 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
                     //Remove all stale nodes before updating. This is done centrally to ensure some data sources
                     //don't skip this check. Some control is still provided so that they can overload.
                     serviceRegistry.updateNodes(FinderUtils.filterValidNodes(serviceRegistry.getService(), nodeList, livenessCheckMaxAge));
+                    MetricRecorder.recordNodeDataRefreshSuccess(nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId(),
+                            stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 }
                 else {
                     log.warn("Empty list returned from node data source. We are in a weird state. Keeping old list for {}",
@@ -161,6 +164,10 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
                           e.getClass().getSimpleName(),
                           e.getMessage());
                 callFailed = true;
+                MetricRecorder.recordNodeDataRefreshFailure(nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId(),
+                        stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            } finally {
+                stopwatch.stop();
             }
         }
         if (!nodeDataSource.isActive() || callFailed) {
@@ -168,6 +175,7 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
             log.warn("Node data source seems to be down. Keeping old list for {}." +
                              " Will update timestamp to keep stale date relevant.",
                      serviceRegistry.getService().getServiceName());
+            MetricRecorder.recordStaleDataRetained(nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId());
             serviceRegistry.updateNodes(serviceRegistry.nodeList()
                                                 .stream()
                                                 .filter(node -> HealthcheckStatus.healthy == node.getHealthcheckStatus())

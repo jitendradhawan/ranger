@@ -28,6 +28,7 @@ class ShardedZKRangerClientTest extends BaseRangerZKClientTest {
     @Test
     void testShardedHub(){
         val zkHubClient = ShardedRangerZKHubClient.<TestNodeData>builder()
+                .metricId("testzk")
                 .namespace("test-n")
                 .connectionString(getTestingCluster().getConnectString())
                 .curatorFramework(getCuratorFramework())

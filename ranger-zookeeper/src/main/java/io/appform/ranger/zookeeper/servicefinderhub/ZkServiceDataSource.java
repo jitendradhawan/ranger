@@ -18,6 +18,8 @@ package io.appform.ranger.zookeeper.servicefinderhub;
 import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.ranger.core.finderhub.ServiceDataSource;
 import io.appform.ranger.core.model.Service;
+import io.appform.ranger.core.model.DataStoreType;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.zookeeper.util.PathBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import static io.appform.ranger.core.util.MetricRecorder.*;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -38,14 +41,17 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ZkServiceDataSource implements ServiceDataSource {
 
+    private final String metricId;
     private final String namespace;
     private final String connectionString;
     private CuratorFramework curatorFramework;
     private boolean curatorProvided;
 
-    public ZkServiceDataSource(String namespace,
+    public ZkServiceDataSource(String metricId,
+                               String namespace,
                                String connectionString,
                                CuratorFramework curatorFramework){
+        this.metricId = metricId;
         this.namespace = namespace;
         this.connectionString = connectionString;
         this.curatorFramework = curatorFramework;
@@ -55,12 +61,27 @@ public class ZkServiceDataSource implements ServiceDataSource {
     @SneakyThrows
     @MonitoredFunction
     public Collection<Service> services() {
-        val children = curatorFramework.getChildren()
-                .forPath(PathBuilder.REGISTERED_SERVICES_PATH);
-        return null == children ? Collections.emptySet() :
-                children.stream()
-                        .map(child -> Service.builder().namespace(namespace).serviceName(child).build())
-                        .collect(Collectors.toSet());
+        try {
+            val children = curatorFramework.getChildren()
+                    .forPath(PathBuilder.REGISTERED_SERVICES_PATH);
+
+            if(children == null || children.isEmpty()) {
+                MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.ZK, metricId);
+                log.warn("No services found for namespace: {} in zk data source with metric id: {}", namespace, metricId);
+            }
+            val result = null == children
+                    ? Collections.<Service>emptySet()
+                    : children.stream()
+                            .map(child -> Service.builder().namespace(namespace).serviceName(child).build())
+                            .collect(Collectors.toSet());
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.ZK, metricId, SUCCESS);
+            return result;
+        }
+        catch (Exception e) {
+            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, metricId, SERVICES_LIST, e.getClass().getSimpleName());
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.ZK, metricId, FAILURE);
+            throw e;
+        }
     }
 
     @Override

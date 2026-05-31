@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.appform.ranger.discovery.bundle.rotationstatus.BIRTask;
 import io.appform.ranger.discovery.bundle.rotationstatus.OORTask;
+import io.appform.ranger.discovery.core.Constants;
 import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
 import io.appform.ranger.discovery.core.rotationstatus.RotationStatus;
 import io.appform.ranger.discovery.core.util.ConfigurationUtils;
@@ -100,6 +101,7 @@ class ServiceDiscoveryBundleRotationTest {
         testingCluster.start();
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
+                
                 .zookeeper(testingCluster.getConnectString())
                 .namespace("test")
                 .environment("testing")

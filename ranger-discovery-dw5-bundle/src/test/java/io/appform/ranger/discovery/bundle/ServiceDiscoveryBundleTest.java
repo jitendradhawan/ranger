@@ -22,6 +22,7 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
+import io.appform.ranger.discovery.core.Constants;
 import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
 import io.appform.ranger.discovery.core.resolvers.DefaultNodeInfoResolver;
 import io.appform.ranger.discovery.core.resolvers.NodeInfoResolver;
@@ -103,6 +104,7 @@ class ServiceDiscoveryBundleTest {
         testingCluster.start();
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
+                
                 .zookeeper(testingCluster.getConnectString())
                 .namespace("test")
                 .environment("testing")

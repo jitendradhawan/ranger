@@ -48,6 +48,7 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings({"unchecked", "unused", "UnusedReturnValue"})
 public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProviderBuilder<T, B, S>, S extends Serializer<T>> {
 
+    protected String metricId;
     protected String namespace;
     protected String serviceName;
     protected S serializer;
@@ -65,6 +66,11 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
 
     /* list of isolated monitors */
     private final List<IsolatedHealthMonitor<HealthcheckStatus>> isolatedMonitors = new ArrayList<>();
+
+    public B withMetricId(final String metricId) {
+        this.metricId = metricId;
+        return (B)this;
+    }
 
     public BaseServiceProviderBuilder<T, B, S> withNamespace(final String namespace) {
         this.namespace = namespace;
@@ -166,6 +172,7 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
     }
 
     protected final ServiceProvider<T, S> buildProvider() {
+        requireNonNull(metricId);
         requireNonNull(namespace);
         requireNonNull(serviceName);
         requireNonNull(serializer);
@@ -190,12 +197,12 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
 
         healthchecks.add(serviceHealthAggregator);
         val service = Service.builder().namespace(namespace).serviceName(serviceName).build();
-        val usableNodeDataSource = dataSink(service);
+        val usableNodeDataSource = dataSink(metricId, service);
 
         val healthcheckUpdateSignalGenerator
                 = new ScheduledSignal<>(
                 service,
-                new HealthChecker(healthchecks, staleUpdateThresholdMs),
+                new HealthChecker(metricId, healthchecks, staleUpdateThresholdMs),
                 Collections.emptyList(),
                 healthUpdateIntervalMs
         );
@@ -236,5 +243,5 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
 
     public abstract ServiceProvider<T,S> build();
 
-    protected abstract NodeDataSink<T,S> dataSink(final Service service);
+    protected abstract NodeDataSink<T,S> dataSink(String metricId, final Service service);
 }

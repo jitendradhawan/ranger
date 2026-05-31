@@ -16,10 +16,12 @@
 package io.appform.ranger.zookeeper.serviceprovider;
 
 import io.appform.functionmetrics.MonitoredFunction;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.NodeDataSink;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.core.util.Exceptions;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.zookeeper.common.ZkNodeDataStoreConnector;
 import io.appform.ranger.zookeeper.common.ZkStoreType;
 import io.appform.ranger.zookeeper.serde.ZkNodeDataSerializer;
@@ -30,6 +32,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
+import static io.appform.ranger.core.util.MetricRecorder.FAILURE;
+import static io.appform.ranger.core.util.MetricRecorder.SUCCESS;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -38,9 +42,9 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNodeDataStoreConnector<T> implements NodeDataSink<T,S> {
     public ZkNodeDataSink(
-            Service service,
+            String metricId, Service service,
             CuratorFramework curatorFramework) {
-        super(service, curatorFramework, ZkStoreType.SINK);
+        super(metricId, service, curatorFramework, ZkStoreType.SINK);
     }
 
     @Override
@@ -56,20 +60,32 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
         try {
             if (null == curatorFramework.checkExists().forPath(path)) {
                 log.info("No node exists for path: {}. Will create now.", path);
-                createPath(serviceNode, serializer);
+                createPath(service.getServiceName(), serviceNode, serializer);
             }
             else {
-                curatorFramework.setData().forPath(path, serializer.serialize(serviceNode));
+                val serviceData = getSerializedData(service.getServiceName(), serializer, serviceNode);
+                curatorFramework.setData().forPath(path, serviceData);
             }
+            MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.ZK, metricId, SUCCESS);
         }
         catch (Exception e) {
             log.error("Error updating node data at path " + path, e);
+            MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.ZK, metricId, FAILURE);
             Exceptions.illegalState(e);
         }
     }
 
+    private <T, S extends ZkNodeDataSerializer<T>> byte[] getSerializedData(String serviceName, S serializer, ServiceNode<T> serviceNode) {
+        try {
+            return serializer.serialize(serviceNode);
+        } catch (Exception e) {
+            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.ZK, metricId, MetricRecorder.SERIALIZAION, serviceName, e.getClass().getSimpleName());
+            throw e;
+        }
+    }
+
     private synchronized void createPath(
-            ServiceNode<T> serviceNode,
+            String serviceName, ServiceNode<T> serviceNode,
             S serializer) {
         val instancePath = PathBuilder.instancePath(service, serviceNode);
         try {
@@ -77,7 +93,7 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
                 curatorFramework.create()
                         .creatingParentContainersIfNeeded()
                         .withMode(CreateMode.EPHEMERAL)
-                        .forPath(instancePath, serializer.serialize(serviceNode));
+                        .forPath(instancePath, getSerializedData(serviceName, serializer, serviceNode));
                 log.info("Created instance path: {}", instancePath);
             }
         }
@@ -85,6 +101,7 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
             log.warn("Node already exists.. Race condition?", e);
         }
         catch (Exception e) {
+            MetricRecorder.recordNodeDataSinkUnknownFailure(DataStoreType.ZK, metricId, service.getServiceName(), e.getClass().getSimpleName());
             val message = String.format(
                     "Could not create node for %s after 60 retries (1 min). " +
                             "This service will not be discoverable. Retry after some time.", service.getServiceName());

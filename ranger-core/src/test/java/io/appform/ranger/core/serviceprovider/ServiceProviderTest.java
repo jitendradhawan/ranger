@@ -93,7 +93,7 @@ class ServiceProviderTest {
         }
 
         @Override
-        protected NodeDataSink<T, TestSerializer<T>> dataSink(Service service) {
+        protected NodeDataSink<T, TestSerializer<T>> dataSink(String metricId, Service service) {
             return new TestNodeDataSink<>();
         }
     }

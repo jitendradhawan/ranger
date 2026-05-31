@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.appform.ranger.core.model;
 
-package io.appform.ranger.discovery.bundle;
-
-import lombok.experimental.UtilityClass;
-
-import java.util.Set;
-
-/**
- * Constants
- */
-@UtilityClass
-public class Constants {
-
-    public static final int DEFAULT_PORT = -1;
-    public static final int DEFAULT_DW_CHECK_INTERVAL = 15;
-    public static final Set<String> LOCAL_ADDRESSES = Set.of("127.0.0.1", "127.0.1.1", "localhost");
-
+public enum DataStoreType {
+    ZK,
+    HTTP,
+    DROVE,
 }

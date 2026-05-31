@@ -22,6 +22,7 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.ranger.discovery.bundle.rotationstatus.BIRTask;
 import io.appform.ranger.discovery.bundle.rotationstatus.OORTask;
+import io.appform.ranger.discovery.core.Constants;
 import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
 import io.appform.ranger.discovery.core.rotationstatus.RotationStatus;
 import io.appform.ranger.discovery.core.util.ConfigurationUtils;

@@ -22,6 +22,7 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
+import io.appform.ranger.discovery.core.Constants;
 import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
 import io.appform.ranger.discovery.core.util.ConfigurationUtils;
 import io.dropwizard.core.Configuration;
@@ -98,6 +99,7 @@ class ServiceDiscoveryBundleHierarchicalSelectorTest {
         DnsCacheManipulator.setDnsCache("TestHost", "127.0.0.1");
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
+                
                 .zookeeper(testingCluster.getConnectString())
                 .namespace("test")
                 .environment("x.y")

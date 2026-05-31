@@ -100,6 +100,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
                     .build();
             curatorFrameworks.add(curatorFramework);
             return UnshardedRangerZKHubClient.<ShardInfo>builder()
+                    .metricId(zkConfiguration.getId())
                     .namespace(namespace)
                     .connectionString(zookeeper)
                     .curatorFramework(curatorFramework)
@@ -125,6 +126,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
         private RangerHubClient<ShardInfo, ListBasedServiceRegistry<ShardInfo>> getHttpHubClient(
                 HttpClientConfig httpClientConfig, RangerHttpUpstreamConfiguration httpConfiguration) {
             return UnshardedRangerHttpHubClient.<ShardInfo>builder()
+                    .metricId(httpClientConfig.getId())
                     .namespace(namespace)
                     .mapper(getMapper())
                     .clientConfig(httpClientConfig)
@@ -153,6 +155,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
                                                            DroveUpstreamConfig.DEFAULT_REGION_TAG_NAME);
             val droveCommunicator = RangerDroveUtils.<ShardInfo>buildDroveClient(namespace, droveConfig, getMapper());
             return UnshardedRangerDroveHubClient.<ShardInfo>builder()
+                    .metricId(droveConfig.getId())
                     .namespace(namespace)
                     .mapper(getMapper())
                     .clientConfig(droveConfig)

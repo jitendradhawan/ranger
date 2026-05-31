@@ -32,6 +32,7 @@ import io.appform.ranger.core.healthservice.monitor.IsolatedHealthMonitor;
 import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.core.model.ShardSelector;
 import io.appform.ranger.core.serviceprovider.ServiceProvider;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
 import io.appform.ranger.discovery.core.healthchecks.InitialDelayChecker;
 import io.appform.ranger.discovery.core.healthchecks.InternalHealthChecker;
@@ -76,6 +77,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.appform.ranger.discovery.bundle.Constants.LOCAL_ADDRESSES;
+import static io.appform.ranger.discovery.core.Constants.DEFAULT_DATA_SINK_ID;
 
 
 /**
@@ -107,8 +109,8 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     protected ServiceDiscoveryBundle(List<IdValidationConstraint> globalIdConstraints) {
         this.globalIdConstraints = globalIdConstraints != null
-                                   ? globalIdConstraints
-                                   : Collections.emptyList();
+                ? globalIdConstraints
+                : Collections.emptyList();
     }
 
     @Override
@@ -142,6 +144,9 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 portScheme);
         serviceDiscoveryClient = buildDiscoveryClient(environment, namespace, serviceName, initialCriteria,
                 useInitialCriteria, shardSelector);
+        if (serviceDiscoveryConfiguration.isMetricsEnabled()){
+            MetricRecorder.initialize(environment.metrics());
+        }
         environment.lifecycle()
                 .manage(new ServiceDiscoveryManager(serviceName));
         environment.jersey()
@@ -234,6 +239,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                                                                              boolean mergeWithInitialCriteria,
                                                                                              ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector) {
         return SimpleRangerZKClient.<ShardInfo>builder()
+                .metricId(DEFAULT_DATA_SINK_ID)
                 .curatorFramework(curator)
                 .namespace(namespace)
                 .serviceName(serviceName)
@@ -274,6 +280,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         val dwMonitoringStaleness = Math.max(serviceDiscoveryConfiguration.getDropwizardCheckStaleness(),
                 dwMonitoringInterval + 1);
         val serviceProviderBuilder = ServiceProviderBuilders.<ShardInfo>shardedServiceProviderBuilder()
+                .withMetricId(DEFAULT_DATA_SINK_ID)
                 .withCuratorFramework(curator)
                 .withNamespace(namespace)
                 .withServiceName(serviceName)

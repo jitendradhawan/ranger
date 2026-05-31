@@ -18,6 +18,7 @@ package io.appform.ranger.zookeeper.common;
 import dev.failsafe.Failsafe;
 import dev.failsafe.Fallback;
 import dev.failsafe.RetryPolicy;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.NodeDataStoreConnector;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.util.Exceptions;
@@ -38,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
 
+    protected final String metricId;
     @Getter(AccessLevel.PROTECTED)
     protected final Service service;
     @Getter(AccessLevel.PROTECTED)
@@ -62,9 +64,10 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
             .build();
 
     protected ZkNodeDataStoreConnector(
-            final Service service,
+            String metricId, final Service service,
             final CuratorFramework curatorFramework,
             final ZkStoreType storeType) {
+        this.metricId = metricId;
         this.service = service;
         this.curatorFramework = curatorFramework;
         this.storeType = storeType;
@@ -165,7 +168,7 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
     public boolean isActive() {
         var zkConnectionActive = curatorFramework != null && curatorFramework.getZookeeperClient() != null
                 && curatorFramework.getZookeeperClient().isConnected();
-        MetricRecorder.recordZkConnection(zkConnectionActive);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.ZK, metricId, zkConnectionActive);
         return zkConnectionActive;
     }
 

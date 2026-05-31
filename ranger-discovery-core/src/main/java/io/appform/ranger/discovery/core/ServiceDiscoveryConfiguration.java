@@ -39,9 +39,6 @@ import java.util.Set;
 @NoArgsConstructor
 public class ServiceDiscoveryConfiguration {
 
-    @NotBlank
-    private String id = Constants.DEFAULT_ID;
-
     @NotNull
     @NotEmpty
     private String namespace = Constants.DEFAULT_NAMESPACE;
@@ -83,6 +80,8 @@ public class ServiceDiscoveryConfiguration {
 
     private Set<String> tags;
 
+    private boolean metricsEnabled = true;
+
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
                                          String environment,
@@ -96,7 +95,8 @@ public class ServiceDiscoveryConfiguration {
                                          boolean initialRotationStatus,
                                          int dropwizardCheckInterval,
                                          int dropwizardCheckStaleness,
-                                         Set<String> tags) {
+                                         Set<String> tags,
+                                         boolean metricsEnabled) {
         this.namespace = Strings.isNullOrEmpty(namespace)
                          ? Constants.DEFAULT_NAMESPACE
                          : namespace;
@@ -120,5 +120,6 @@ public class ServiceDiscoveryConfiguration {
                                        : dropwizardCheckInterval;
         this.dropwizardCheckStaleness = dropwizardCheckStaleness;
         this.tags = tags;
+        this.metricsEnabled = metricsEnabled;
     }
 }

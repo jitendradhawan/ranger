@@ -17,8 +17,10 @@
 package io.appform.ranger.http.servicefinder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.http.config.HttpClientConfig;
 import io.appform.ranger.http.model.ServiceDataSourceResponse;
 import io.appform.ranger.http.serde.HTTPResponseDataDeserializer;
@@ -38,6 +40,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static io.appform.ranger.core.util.MetricRecorder.*;
+
 /**
  * Direct api based communication
  */
@@ -46,6 +50,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
     private final AtomicBoolean upstreamAvailable = new AtomicBoolean(true);
     private final ScheduledExecutorService resetter = Executors.newSingleThreadScheduledExecutor();
 
+    private final String metricId;
     @Getter
     private final OkHttpClient httpClient;
     private final HttpClientConfig config;
@@ -53,6 +58,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
 
     public HttpApiCommunicator(OkHttpClient httpClient, HttpClientConfig config, ObjectMapper mapper) {
         Objects.requireNonNull(mapper, "mapper has not been set for node data");
+        this.metricId = config.getId();
         this.httpClient = httpClient;
         this.config = config;
         this.mapper = mapper;
@@ -80,6 +86,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                     .build();
 
             try (val response = httpClient.newCall(request).execute()) {
+                MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, metricId, SERVICES_LIST, response.code());
                 if (response.isSuccessful()) {
                     return parseServices(response, httpUrl);
                 }
@@ -89,6 +96,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                 }
             }
             catch (Exception e) {
+                MetricRecorder.recordRemoteCallUnknownFailure(DataStoreType.HTTP, metricId, SERVICES_LIST, e.getClass().getSimpleName());
                 throw new HttpCommunicationException(
                         "Error parsing the response from server for url: " + httpUrl
                                 + " with exception " + e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -117,14 +125,16 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                     .build();
 
             try (val response = httpClient.newCall(request).execute()) {
+                MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, metricId, LIST_NODES, response.code());
                 if (response.isSuccessful()) {
-                    return parseNodeList(deserializer, response, httpUrl);
+                    return parseNodeList(service, deserializer, response, httpUrl);
                 }
                 else {
                     throw new HttpCommunicationException("HTTP call failed. url: " + httpUrl + " status: " + response.code());
                 }
             }
             catch (Exception e) {
+                MetricRecorder.recordRemoteCallUnknownFailure(DataStoreType.HTTP, metricId, LIST_NODES, e.getClass().getSimpleName(), service.getServiceName());
                 throw new HttpCommunicationException("Error getting node data from the http endpoint: " + httpUrl +
                                                              ". Error: " + e.getMessage());
             }
@@ -161,6 +171,12 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
             else {
                 val bytes = body.bytes();
                 val serviceDataSourceResponse = mapper.readValue(bytes, ServiceDataSourceResponse.class);
+
+                if(serviceDataSourceResponse == null || serviceDataSourceResponse.getData() == null || serviceDataSourceResponse.getData().isEmpty()) {
+                    MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.HTTP, metricId);
+                    log.warn("Received empty services list from http. Response body: {}", response.body());
+                }
+
                 if (serviceDataSourceResponse.valid()) {
                     return serviceDataSourceResponse.getData();
                 }
@@ -169,25 +185,35 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                             "Http call to returned a failure response. Url:" + httpUrl + " data: " + serviceDataSourceResponse);
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (HttpCommunicationException httpCommunicationException){
+            throw httpCommunicationException;
+        } catch (Exception e) {
+            MetricRecorder.recordServicesParseFailure(DataStoreType.HTTP, metricId);
             throw new HttpCommunicationException(
                     "Error reading data from server. Url: " + httpUrl + "Error: " + e.getMessage());
         }
     }
 
-    private static <T> List<ServiceNode<T>> parseNodeList(
+    private <T> List<ServiceNode<T>> parseNodeList(
+            Service service,
             HTTPResponseDataDeserializer<T> deserializer,
             Response response,
             HttpUrl httpUrl) {
         try (val body = response.body()) {
             if (null == body) {
                 log.warn("HTTP call to {} returned empty body", httpUrl);
+                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId, service.getServiceName());
                 throw new HttpCommunicationException("Empty response received for call to " + httpUrl);
             }
             else {
                 val bytes = body.bytes();
                 val serviceNodesResponse = deserializer.deserialize(bytes);
+
+                if(serviceNodesResponse == null || serviceNodesResponse.getData() == null || serviceNodesResponse.getData().isEmpty()) {
+                    MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId, service.getServiceName());
+                    log.warn("Received empty node list from http. Response body: {}", response.body());
+                }
+
                 if (serviceNodesResponse.valid()) {
                     return serviceNodesResponse.getData();
                 }
@@ -196,8 +222,10 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                             "Http call returned null nodes for url: " + httpUrl + " response: " + serviceNodesResponse);
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (HttpCommunicationException httpCommunicationException){
+            throw httpCommunicationException;
+        } catch (Exception e) {
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.HTTP, metricId, service.getServiceName());
             throw new HttpCommunicationException(
                     "Error parsing node data from server. Url: " + httpUrl + "Error: " + e.getMessage());
         }

@@ -16,6 +16,7 @@
 package io.appform.ranger.http.servicefinder;
 
 import io.appform.functionmetrics.MonitoredFunction;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
@@ -39,19 +40,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> extends HttpNodeDataStoreConnector<T> implements NodeDataSource<T, D> {
 
+    private final String metricId;
     private final Service service;
     private final AtomicBoolean upstreamAvailable = new AtomicBoolean(true);
     private final ScheduledExecutorService resetter = Executors.newSingleThreadScheduledExecutor();
 
     public HttpNodeDataSource(
+            final String metricId,
             final Service service,
             final HttpClientConfig config,
             final HttpCommunicator<T> httpCommunicator) {
         super(config, httpCommunicator);
         Objects.requireNonNull(config, "client config has not been set for node data");
         Objects.requireNonNull(httpCommunicator, "http communicator has not been set for node data");
+        this.metricId = metricId;
         this.service = service;
         resetter.scheduleWithFixedDelay(() -> upstreamAvailable.set(true), 0, 60, TimeUnit.SECONDS);
+    }
+
+    public String getMetricId() {
+        return metricId;
+    }
+
+    @Override
+    public DataStoreType getDataStoreType() {
+        return DataStoreType.HTTP;
     }
 
     @Override
@@ -63,7 +76,7 @@ public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> ex
     @Override
     public boolean isActive() {
         var httpUpstreamAvailable = upstreamAvailable.get();
-        MetricRecorder.recordHttpUpstreamAvailability(this.config.getId(), httpUpstreamAvailable);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.HTTP, metricId, httpUpstreamAvailable);
         return httpUpstreamAvailable;
     }
 }

@@ -167,7 +167,7 @@ private static class TestServiceFinderHubBuilder extends ServiceFinderHubBuilder
         }
 
         @Override
-        protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(Service service) {
+        protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(String metricId, Service service) {
             return new TestNodeDataSource();
         }
 
@@ -186,6 +186,16 @@ private static class TestServiceFinderHubBuilder extends ServiceFinderHubBuilder
         }
 
         private static class TestNodeDataSource implements NodeDataSource<TestNodeData, Deserializer<TestNodeData>> {
+            @Override
+            public String getMetricId() {
+                return "testNodeDataSource";
+            }
+
+            @Override
+            public DataStoreType getDataStoreType() {
+                return DataStoreType.HTTP;
+            }
+
             @Override
             public Optional<List<ServiceNode<TestNodeData>>> refresh(Deserializer<TestNodeData> deserializer) {
                 val list = new ArrayList<ServiceNode<TestNodeData>>();
