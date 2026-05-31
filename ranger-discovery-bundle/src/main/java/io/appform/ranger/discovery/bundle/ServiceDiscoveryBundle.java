@@ -20,37 +20,43 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import io.appform.ranger.client.RangerClient;
 import io.appform.ranger.client.zk.SimpleRangerZKClient;
 import io.appform.ranger.common.server.ShardInfo;
+import io.appform.ranger.core.finder.nodeselector.RandomServiceNodeSelector;
 import io.appform.ranger.core.finder.serviceregistry.MapBasedServiceRegistry;
 import io.appform.ranger.core.healthcheck.Healthcheck;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
+import io.appform.ranger.core.healthcheck.updater.HealthStatusHandler;
+import io.appform.ranger.core.healthcheck.updater.HealthUpdateHandler;
+import io.appform.ranger.core.healthcheck.updater.LastUpdatedHandler;
+import io.appform.ranger.core.healthcheck.updater.RoutingWeightHandler;
+import io.appform.ranger.core.healthcheck.updater.StartupTimeHandler;
 import io.appform.ranger.core.healthservice.TimeEntity;
 import io.appform.ranger.core.healthservice.monitor.IsolatedHealthMonitor;
 import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.model.ServiceNodeSelector;
 import io.appform.ranger.core.model.ShardSelector;
 import io.appform.ranger.core.serviceprovider.ServiceProvider;
-import io.appform.ranger.core.util.MetricRecorder;
-import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
-import io.appform.ranger.discovery.core.healthchecks.InitialDelayChecker;
-import io.appform.ranger.discovery.core.healthchecks.InternalHealthChecker;
-import io.appform.ranger.discovery.core.healthchecks.RotationCheck;
-import io.appform.ranger.discovery.core.monitors.DropwizardHealthMonitor;
+import io.appform.ranger.discovery.bundle.healthchecks.InitialDelayChecker;
+import io.appform.ranger.discovery.bundle.healthchecks.InternalHealthChecker;
+import io.appform.ranger.discovery.bundle.healthchecks.RotationCheck;
+import io.appform.ranger.discovery.bundle.id.IdGenerator;
+import io.appform.ranger.discovery.bundle.id.NodeIdManager;
+import io.appform.ranger.discovery.bundle.id.constraints.IdValidationConstraint;
+import io.appform.ranger.discovery.bundle.monitors.DropwizardHealthMonitor;
 import io.appform.ranger.discovery.bundle.monitors.DropwizardServerStartupCheck;
-import io.appform.ranger.discovery.core.resolvers.DefaultNodeInfoResolver;
+import io.appform.ranger.discovery.bundle.resolvers.DefaultNodeInfoResolver;
 import io.appform.ranger.discovery.bundle.resolvers.DefaultPortSchemeResolver;
-import io.appform.ranger.discovery.core.resolvers.NodeInfoResolver;
+import io.appform.ranger.discovery.bundle.resolvers.NodeInfoResolver;
 import io.appform.ranger.discovery.bundle.resolvers.PortSchemeResolver;
 import io.appform.ranger.discovery.bundle.rotationstatus.BIRTask;
-import io.appform.ranger.discovery.core.rotationstatus.DropwizardServerStatus;
+import io.appform.ranger.discovery.bundle.rotationstatus.DropwizardServerStatus;
 import io.appform.ranger.discovery.bundle.rotationstatus.OORTask;
-import io.appform.ranger.discovery.core.rotationstatus.RotationStatus;
-import io.appform.ranger.discovery.core.selectors.HierarchicalEnvironmentAwareShardSelector;
-import io.appform.ranger.discovery.core.util.ConfigurationUtils;
-import io.appform.ranger.id.IdGenerator;
-import io.appform.ranger.id.NodeIdManager;
-import io.appform.ranger.id.constraints.IdValidationConstraint;
+import io.appform.ranger.discovery.bundle.rotationstatus.RotationStatus;
+import io.appform.ranger.discovery.bundle.selectors.HierarchicalEnvironmentAwareShardSelector;
+import io.appform.ranger.discovery.bundle.util.ConfigurationUtils;
 import io.appform.ranger.zookeeper.ServiceProviderBuilders;
 import io.appform.ranger.zookeeper.serde.ZkNodeDataSerializer;
 import io.dropwizard.Configuration;
@@ -74,6 +80,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.appform.ranger.discovery.bundle.Constants.LOCAL_ADDRESSES;
@@ -88,7 +95,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public abstract class ServiceDiscoveryBundle<T extends Configuration> implements ConfiguredBundle<T> {
 
-    private final List<Healthcheck> healthchecks = new ArrayList<>();
+    private final List<Healthcheck> healthchecks = Lists.newArrayList();
     private final List<IdValidationConstraint> globalIdConstraints;
     private ServiceDiscoveryConfiguration serviceDiscoveryConfiguration;
     private ServiceProvider<ShardInfo, ZkNodeDataSerializer<ShardInfo>> serviceProvider;
@@ -110,8 +117,8 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     protected ServiceDiscoveryBundle(List<IdValidationConstraint> globalIdConstraints) {
         this.globalIdConstraints = globalIdConstraints != null
-                ? globalIdConstraints
-                : Collections.emptyList();
+                                   ? globalIdConstraints
+                                   : Collections.emptyList();
     }
 
     @Override
@@ -123,7 +130,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
     public void run(T configuration,
                     Environment environment) throws Exception {
         val portSchemeResolver = createPortSchemeResolver();
-        requireNonNull(portSchemeResolver, "Port scheme resolver can't be null");
+        Preconditions.checkNotNull(portSchemeResolver, "Port scheme resolver can't be null");
         val portScheme = portSchemeResolver.resolve(configuration);
         serviceDiscoveryConfiguration = getRangerConfiguration(configuration);
         val objectMapper = environment.getObjectMapper();
@@ -134,6 +141,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         val initialCriteria = getInitialCriteria(configuration);
         val useInitialCriteria = alwaysMergeWithInitialCriteria(configuration);
         val shardSelector = getShardSelector(configuration);
+        val nodeSelector = getServiceNodeSelector(configuration);
         rotationStatus = new RotationStatus(serviceDiscoveryConfiguration.isInitialRotationStatus());
         serverStatus = new DropwizardServerStatus(false);
         curator = CuratorFrameworkFactory.builder()
@@ -144,7 +152,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         serviceProvider = buildServiceProvider(environment, objectMapper, namespace, serviceName, hostname, port,
                 portScheme);
         serviceDiscoveryClient = buildDiscoveryClient(environment, namespace, serviceName, initialCriteria,
-                useInitialCriteria, shardSelector);
+                useInitialCriteria, shardSelector, nodeSelector);
         if (serviceDiscoveryConfiguration.isMetricsEnabled()){
             MetricRecorder.initialize(environment.metrics());
         }
@@ -162,9 +170,18 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         return new HierarchicalEnvironmentAwareShardSelector(getRangerConfiguration(configuration).getEnvironment());
     }
 
+    @SuppressWarnings("java:S1172")
+    protected ServiceNodeSelector<ShardInfo> getServiceNodeSelector(T configuration) {
+        return new RandomServiceNodeSelector<>();
+    }
+
     protected abstract ServiceDiscoveryConfiguration getRangerConfiguration(T configuration);
 
     protected abstract String getServiceName(T configuration);
+
+    protected Supplier<Double> getWeightSupplier() {
+        return () -> 1.0;
+    }
 
     protected NodeInfoResolver createNodeInfoResolver() {
         return new DefaultNodeInfoResolver();
@@ -238,15 +255,16 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                                                                              String serviceName,
                                                                                              Predicate<ShardInfo> initialCriteria,
                                                                                              boolean mergeWithInitialCriteria,
-                                                                                             ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector) {
+                                                                                             ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector,
+                                                                                             final ServiceNodeSelector<ShardInfo> nodeSelector) {
         return SimpleRangerZKClient.<ShardInfo>builder()
-                .metricId(DEFAULT_DATA_SINK_ID)
                 .curatorFramework(curator)
                 .namespace(namespace)
                 .serviceName(serviceName)
                 .mapper(environment.getObjectMapper())
                 .nodeRefreshIntervalMs(serviceDiscoveryConfiguration.getRefreshTimeMs())
                 .disableWatchers(serviceDiscoveryConfiguration.isDisableWatchers())
+                .nodeSelector(nodeSelector)
                 .deserializer(data -> {
                     try {
                         return environment.getObjectMapper()
@@ -273,13 +291,17 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         val nodeInfoResolver = createNodeInfoResolver();
         val nodeInfo = nodeInfoResolver.resolve(serviceDiscoveryConfiguration);
         val initialDelayForMonitor = serviceDiscoveryConfiguration.getInitialDelaySeconds() > 1
-                ? serviceDiscoveryConfiguration.getInitialDelaySeconds() - 1
-                : 0;
+                                     ? serviceDiscoveryConfiguration.getInitialDelaySeconds() - 1
+                                     : 0;
         val dwMonitoringInterval = serviceDiscoveryConfiguration.getDropwizardCheckInterval() == 0
-                ? Constants.DEFAULT_DW_CHECK_INTERVAL
-                : serviceDiscoveryConfiguration.getDropwizardCheckInterval();
+                                   ? Constants.DEFAULT_DW_CHECK_INTERVAL
+                                   : serviceDiscoveryConfiguration.getDropwizardCheckInterval();
         val dwMonitoringStaleness = Math.max(serviceDiscoveryConfiguration.getDropwizardCheckStaleness(),
                 dwMonitoringInterval + 1);
+        final HealthUpdateHandler<ShardInfo> shardInfoHealthUpdateHandler = new LastUpdatedHandler<ShardInfo>()
+                .setNext(new HealthStatusHandler<>())
+                .setNext(new RoutingWeightHandler<>(getWeightSupplier().get()))
+                .setNext(new StartupTimeHandler<>());
         val serviceProviderBuilder = ServiceProviderBuilders.<ShardInfo>shardedServiceProviderBuilder()
                 .withMetricId(DEFAULT_DATA_SINK_ID)
                 .withCuratorFramework(curator)
@@ -303,9 +325,10 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .withHealthcheck(new DropwizardServerStartupCheck(environment, serverStatus))
                 .withIsolatedHealthMonitor(new DropwizardHealthMonitor(
                         new TimeEntity(initialDelayForMonitor, dwMonitoringInterval, TimeUnit.SECONDS),
-                        dwMonitoringStaleness * 1_000L, environment.healthChecks()))
+                        dwMonitoringStaleness * 1_000L, environment))
                 .withHealthUpdateIntervalMs(serviceDiscoveryConfiguration.getRefreshTimeMs())
-                .withStaleUpdateThresholdMs(10000);
+                .withStaleUpdateThresholdMs(10000)
+                .healthUpdateHandler(shardInfoHealthUpdateHandler);
 
         val healthMonitors = getHealthMonitors();
         if (healthMonitors != null && !healthMonitors.isEmpty()) {
