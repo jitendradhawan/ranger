@@ -19,7 +19,6 @@ package io.appform.ranger.discovery.bundle;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
 import io.appform.ranger.discovery.core.Constants;
 import io.appform.ranger.discovery.core.ServiceDiscoveryConfiguration;
@@ -41,6 +40,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static io.appform.ranger.discovery.bundle.TestUtils.assertNodeAbsence;
 import static io.appform.ranger.discovery.bundle.TestUtils.assertNodePresence;
@@ -90,7 +91,7 @@ class ServiceDiscoveryBundleCustomHostPortTest {
 
     @BeforeEach
     void setup() throws Exception {
-        when(serverFactory.getApplicationConnectors()).thenReturn(Lists.newArrayList(connectorFactory));
+        when(serverFactory.getApplicationConnectors()).thenReturn(List.of(connectorFactory));
         when(configuration.getServerFactory()).thenReturn(serverFactory);
         when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
         when(environment.jersey()).thenReturn(jerseyEnvironment);

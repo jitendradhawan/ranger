@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import io.appform.ranger.client.RangerClient;
 import io.appform.ranger.client.zk.SimpleRangerZKClient;
 import io.appform.ranger.common.server.ShardInfo;
+import io.appform.ranger.core.finder.nodeselector.RandomServiceNodeSelector;
 import io.appform.ranger.core.finder.serviceregistry.MapBasedServiceRegistry;
 import io.appform.ranger.core.healthcheck.Healthcheck;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
@@ -35,6 +36,7 @@ import io.appform.ranger.core.healthcheck.updater.StartupTimeHandler;
 import io.appform.ranger.core.healthservice.TimeEntity;
 import io.appform.ranger.core.healthservice.monitor.IsolatedHealthMonitor;
 import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.model.ServiceNodeSelector;
 import io.appform.ranger.core.model.ShardSelector;
 import io.appform.ranger.core.serviceprovider.ServiceProvider;
 import io.appform.ranger.core.util.MetricRecorder;
@@ -139,6 +141,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         val initialCriteria = getInitialCriteria(configuration);
         val useInitialCriteria = alwaysMergeWithInitialCriteria(configuration);
         val shardSelector = getShardSelector(configuration);
+        val nodeSelector = getServiceNodeSelector(configuration);
         rotationStatus = new RotationStatus(serviceDiscoveryConfiguration.isInitialRotationStatus());
         serverStatus = new DropwizardServerStatus(false);
         curator = CuratorFrameworkFactory.builder()
@@ -149,7 +152,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         serviceProvider = buildServiceProvider(environment, objectMapper, namespace, serviceName, hostname, port,
                 portScheme);
         serviceDiscoveryClient = buildDiscoveryClient(environment, namespace, serviceName, initialCriteria,
-                useInitialCriteria, shardSelector);
+                useInitialCriteria, shardSelector, nodeSelector);
         if (serviceDiscoveryConfiguration.isMetricsEnabled()){
             MetricRecorder.initialize(environment.metrics());
         }
@@ -165,6 +168,11 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     protected ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> getShardSelector(T configuration) {
         return new HierarchicalEnvironmentAwareShardSelector(getRangerConfiguration(configuration).getEnvironment());
+    }
+
+    @SuppressWarnings("java:S1172")
+    protected ServiceNodeSelector<ShardInfo> getServiceNodeSelector(T configuration) {
+        return new RandomServiceNodeSelector<>();
     }
 
     protected abstract ServiceDiscoveryConfiguration getRangerConfiguration(T configuration);
@@ -247,7 +255,8 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                                                                              String serviceName,
                                                                                              Predicate<ShardInfo> initialCriteria,
                                                                                              boolean mergeWithInitialCriteria,
-                                                                                             ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector) {
+                                                                                             ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector,
+                                                                                             final ServiceNodeSelector<ShardInfo> nodeSelector) {
         return SimpleRangerZKClient.<ShardInfo>builder()
                 .metricId(DEFAULT_DATA_SINK_ID)
                 .curatorFramework(curator)
@@ -256,6 +265,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .mapper(environment.getObjectMapper())
                 .nodeRefreshIntervalMs(serviceDiscoveryConfiguration.getRefreshTimeMs())
                 .disableWatchers(serviceDiscoveryConfiguration.isDisableWatchers())
+                .nodeSelector(nodeSelector)
                 .deserializer(data -> {
                     try {
                         return environment.getObjectMapper()
