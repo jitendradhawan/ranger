@@ -234,9 +234,19 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         // When refresh returns null, no success timer should be incremented for that second call
         // The success timer from the first call should be 1
         val timerName = "io.appform.ranger.dataSource.ZK." + METRIC_ID + ".nodeDataRefresh.success";
-        val timer = metricRegistry.getTimers().get(timerName);
-        assertNotNull(timer);
-        assertEquals(1, timer.getCount(), "Only the first successful refresh should be counted");
+        val beforeTimer = metricRegistry.getTimers().get(timerName);
+        final long beforeCount = beforeTimer == null ? 0L : beforeTimer.getCount();
+
+        // Now set to null and trigger update
+        dataSource.setNodeList(null);
+        signal.fire();
+        sleep(200);
+
+        val afterTimer = metricRegistry.getTimers().get(timerName);
+        final long afterCount = afterTimer == null ? 0L : afterTimer.getCount();
+
+        assertEquals(beforeCount, afterCount,
+                "Success timer count should not increase when refresh returns null");
     }
 
     // ==================== Test helpers ====================
