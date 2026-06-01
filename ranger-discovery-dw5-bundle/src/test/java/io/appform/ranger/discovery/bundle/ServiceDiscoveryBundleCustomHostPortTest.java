@@ -107,7 +107,6 @@ class ServiceDiscoveryBundleCustomHostPortTest {
         testingCluster.start();
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper(testingCluster.getConnectString())
                 .namespace("test")
                 .environment("testing")

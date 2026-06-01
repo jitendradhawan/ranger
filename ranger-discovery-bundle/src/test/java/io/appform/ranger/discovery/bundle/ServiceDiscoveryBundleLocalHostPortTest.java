@@ -129,7 +129,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper(String.format("%s:2181", UUID.randomUUID()))
                 .namespace("test")
                 .environment("testing")

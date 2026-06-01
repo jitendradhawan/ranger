@@ -97,7 +97,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public abstract class ServiceDiscoveryBundle<T extends Configuration> implements ConfiguredBundle<T> {
 
-    private final List<Healthcheck> healthchecks = Lists.newArrayList();
+    private final List<Healthcheck> healthchecks = new ArrayList<>();
     private final List<IdValidationConstraint> globalIdConstraints;
     private ServiceDiscoveryConfiguration serviceDiscoveryConfiguration;
     private ServiceProvider<ShardInfo, ZkNodeDataSerializer<ShardInfo>> serviceProvider;

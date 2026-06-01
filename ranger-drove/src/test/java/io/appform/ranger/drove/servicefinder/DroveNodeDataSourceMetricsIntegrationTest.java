@@ -74,7 +74,7 @@ class DroveNodeDataSourceMetricsIntegrationTest {
         try (val droveClient = buildClient(config)) {
             val service = new Service("testns", "TEST_APP");
             val dataSource = new DroveNodeDataSource<String, DroveResponseDataDeserializer<String>>(
-                    "drove-node-src-1", service, config, MAPPER, droveClient);
+                    service, config, MAPPER, droveClient);
 
             val active = dataSource.isActive();
 
@@ -100,12 +100,13 @@ class DroveNodeDataSourceMetricsIntegrationTest {
         try (val droveClient = buildClient(config)) {
             val service = new Service("testns", "TEST_APP");
             val dataSource = new DroveNodeDataSource<String, DroveResponseDataDeserializer<String>>(
-                    "drove-node-src-2", service, config, MAPPER, droveClient);
+                    service, config, MAPPER, droveClient);
 
             // First call to services fails, setting upstreamAvailable to false
             try {
                 droveClient.services();
             } catch (Exception ignored) {
+                // Ignored
             }
 
             val active = dataSource.isActive();
@@ -139,7 +140,7 @@ class DroveNodeDataSourceMetricsIntegrationTest {
         try (val droveClient = buildClient(config)) {
             val service = new Service("testns", "TEST_APP");
             val dataSource = new DroveNodeDataSource<String, DroveResponseDataDeserializer<String>>(
-                    "drove-node-src-3", service, config, MAPPER, droveClient);
+                    service, config, MAPPER, droveClient);
 
             val result = dataSource.refresh(STRING_DESERIALIZER);
 
@@ -167,7 +168,7 @@ class DroveNodeDataSourceMetricsIntegrationTest {
         try (val droveClient = buildClient(config)) {
             val service = new Service("testns", "FAIL_APP");
             val dataSource = new DroveNodeDataSource<String, DroveResponseDataDeserializer<String>>(
-                    "drove-node-src-4", service, config, MAPPER, droveClient);
+                    service, config, MAPPER, droveClient);
 
             val result = dataSource.refresh(STRING_DESERIALIZER);
 

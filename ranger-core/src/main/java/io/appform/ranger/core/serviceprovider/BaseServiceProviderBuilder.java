@@ -62,10 +62,10 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
     protected int staleUpdateThresholdMs;
     protected NodeDataSink<T, S> nodeDataSource = null;
     protected HealthUpdateHandler<T> healthUpdateHandler;
-    protected final List<Healthcheck> healthchecks = Lists.newArrayList();
-    protected final List<Consumer<Void>> startSignalHandlers = Lists.newArrayList();
-    protected final List<Consumer<Void>> stopSignalHandlers = Lists.newArrayList();
-    protected final List<Signal<HealthcheckResult>> additionalRefreshSignals = Lists.newArrayList();
+    protected final List<Healthcheck> healthchecks = new ArrayList<>();
+    protected final List<Consumer<Void>> startSignalHandlers = new ArrayList<>();
+    protected final List<Consumer<Void>> stopSignalHandlers = new ArrayList<>();
+    protected final List<Signal<HealthcheckResult>> additionalRefreshSignals = new ArrayList<>();
 
     /* list of isolated monitors */
     private final List<IsolatedHealthMonitor<HealthcheckStatus>> isolatedMonitors = new ArrayList<>();

@@ -101,7 +101,6 @@ class ServiceDiscoveryBundleHierarchicalSelectorTest {
         DnsCacheManipulator.setDnsCache("TestHost", "127.0.0.1");
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper(testingCluster.getConnectString())
                 .namespace("test")
                 .environment("x.y")

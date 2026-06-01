@@ -41,17 +41,14 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> extends DroveNodeDataStoreConnector<T> implements NodeDataSource<T, D> {
 
-    private final String metricId;
     private final Service service;
 
     public DroveNodeDataSource(
-            String metricId,
             Service service,
             final DroveUpstreamConfig config,
             ObjectMapper mapper,
             DroveCommunicator droveClient) {
         super(config, mapper, droveClient);
-        this.metricId = metricId;
         this.service = service;
     }
 

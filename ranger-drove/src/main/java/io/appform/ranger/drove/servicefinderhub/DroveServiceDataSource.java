@@ -34,17 +34,14 @@ import static java.util.Objects.requireNonNull;
 
 @Slf4j
 public class DroveServiceDataSource<T> extends DroveNodeDataStoreConnector<T> implements ServiceDataSource {
-    private final String metricId;
     private final String namespace;
 
     public DroveServiceDataSource(
-            final String metricId,
             final DroveUpstreamConfig config,
             final ObjectMapper mapper,
             final String namespace,
             final DroveCommunicator droveClient) {
         super(config, mapper, droveClient);
-        this.metricId = metricId;
         this.namespace = namespace;
     }
 

@@ -100,7 +100,7 @@ class DroveServiceDataSourceTest {
         val namespace = "test";
         try(val droveClient = RangerDroveUtils.buildDroveClient(namespace, clientConfig, MAPPER)) {
             val finder = new DroveServiceDataSource<TestNodeData>(
-                    null, clientConfig,
+                    clientConfig,
                     MAPPER,
                     namespace,
                     droveClient);

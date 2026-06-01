@@ -46,7 +46,7 @@ public abstract class AbstractRangerDroveHubClient<T, R extends ServiceRegistry<
 
     @Override
     protected ServiceDataSource getDefaultDataSource(String metricId) {
-        return new DroveServiceDataSource<>(metricId, clientConfig, getMapper(), getNamespace(), droveCommunicator);
+        return new DroveServiceDataSource<>(clientConfig, getMapper(), getNamespace(), droveCommunicator);
     }
 
     @Override

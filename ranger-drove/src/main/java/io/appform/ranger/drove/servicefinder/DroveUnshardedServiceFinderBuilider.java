@@ -57,7 +57,7 @@ public class DroveUnshardedServiceFinderBuilider<T>
 
     @Override
     protected NodeDataSource<T, DroveResponseDataDeserializer<T>> dataSource(String metricId, Service service) {
-        return new DroveNodeDataSource<>(metricId,
+        return new DroveNodeDataSource<>(
                 service,
                 clientConfig,
                 mapper, Objects.requireNonNullElseGet(droveCommunicator,

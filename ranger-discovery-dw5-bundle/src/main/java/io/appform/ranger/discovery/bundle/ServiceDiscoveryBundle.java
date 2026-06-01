@@ -77,6 +77,7 @@ import org.apache.curator.retry.RetryForever;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -95,7 +96,7 @@ import static io.appform.ranger.discovery.core.Constants.DEFAULT_DATA_SINK_ID;
 @Slf4j
 public abstract class ServiceDiscoveryBundle<T extends Configuration> implements ConfiguredBundle<T> {
 
-    private final List<Healthcheck> healthchecks = Lists.newArrayList();
+    private final List<Healthcheck> healthchecks = new ArrayList<>();
     private final List<IdValidationConstraint> globalIdConstraints;
     private ServiceDiscoveryConfiguration serviceDiscoveryConfiguration;
     private ServiceProvider<ShardInfo, ZkNodeDataSerializer<ShardInfo>> serviceProvider;
@@ -117,8 +118,8 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     protected ServiceDiscoveryBundle(List<IdValidationConstraint> globalIdConstraints) {
         this.globalIdConstraints = globalIdConstraints != null
-                ? globalIdConstraints
-                : Collections.emptyList();
+                                   ? globalIdConstraints
+                                   : Collections.emptyList();
     }
 
     @Override
@@ -179,6 +180,10 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     protected abstract String getServiceName(T configuration);
 
+    protected Supplier<Double> getWeightSupplier() {
+        return () -> 1.0;
+    }
+
     protected NodeInfoResolver createNodeInfoResolver() {
         return new DefaultNodeInfoResolver();
     }
@@ -200,10 +205,6 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     protected List<IsolatedHealthMonitor<HealthcheckStatus>> getHealthMonitors() {
         return Collections.emptyList();
-    }
-
-    protected Supplier<Double> getWeightSupplier() {
-        return () -> 1.0;
     }
 
     @SuppressWarnings("unused")

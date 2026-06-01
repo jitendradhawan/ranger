@@ -31,6 +31,14 @@ class HealthCheckerMetricsIntegrationTest {
     private MetricRegistry metricRegistry;
     private static final String METRIC_ID = "test-hc-metric";
 
+    // Metric keys produced by MetricRecorder for DataStoreType.ZK and METRIC_ID:
+    //   recordHealthcheckStatus  -> io.appform.ranger.dataSource.ZK.dataSource.<id>.healthcheck.status.<healthy|unhealthy>
+    //   recordHealthcheckFailure -> io.appform.ranger.dataSource.ZK.dataSource.<id>.healthcheck.failure
+    private static final String HC_PREFIX       = "io.appform.ranger.dataSource.ZK.dataSource." + METRIC_ID + ".healthcheck";
+    private static final String HEALTHY_KEY     = HC_PREFIX + ".status.healthy";
+    private static final String UNHEALTHY_KEY   = HC_PREFIX + ".status.unhealthy";
+    private static final String FAILURE_KEY     = HC_PREFIX + ".failure";
+
     @BeforeEach
     void setUp() {
         metricRegistry = new MetricRegistry();
@@ -48,14 +56,14 @@ class HealthCheckerMetricsIntegrationTest {
         assertEquals(HealthcheckStatus.healthy, result.getStatus());
 
         // Verify healthy metric recorded
-        val healthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".healthy");
+        val healthyMeter = metricRegistry.getMeters().get(HEALTHY_KEY);
         assertNotNull(healthyMeter, "Healthy meter should exist");
         assertEquals(1, healthyMeter.getCount());
 
         // Verify no failure metric
-        assertNull(metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".failure"));
+        assertNull(metricRegistry.getMeters().get(FAILURE_KEY));
         // Verify no unhealthy metric
-        assertNull(metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".unhealthy"));
+        assertNull(metricRegistry.getMeters().get(UNHEALTHY_KEY));
     }
 
     @Test
@@ -69,12 +77,12 @@ class HealthCheckerMetricsIntegrationTest {
         assertEquals(HealthcheckStatus.unhealthy, result.getStatus());
 
         // Verify unhealthy metric recorded
-        val unhealthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".unhealthy");
+        val unhealthyMeter = metricRegistry.getMeters().get(UNHEALTHY_KEY);
         assertNotNull(unhealthyMeter, "Unhealthy meter should exist");
         assertEquals(1, unhealthyMeter.getCount());
 
         // No healthy metric
-        assertNull(metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".healthy"));
+        assertNull(metricRegistry.getMeters().get(HEALTHY_KEY));
     }
 
     @Test
@@ -89,12 +97,12 @@ class HealthCheckerMetricsIntegrationTest {
         assertEquals(HealthcheckStatus.unhealthy, result.getStatus());
 
         // Verify failure metric recorded (exception path)
-        val failureMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".failure");
+        val failureMeter = metricRegistry.getMeters().get(FAILURE_KEY);
         assertNotNull(failureMeter, "Failure meter should exist on exception");
         assertEquals(1, failureMeter.getCount());
 
         // Verify unhealthy status metric also recorded
-        val unhealthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".unhealthy");
+        val unhealthyMeter = metricRegistry.getMeters().get(UNHEALTHY_KEY);
         assertNotNull(unhealthyMeter, "Unhealthy meter should be recorded after exception");
         assertEquals(1, unhealthyMeter.getCount());
     }
@@ -111,7 +119,7 @@ class HealthCheckerMetricsIntegrationTest {
         assertNotNull(result);
         assertEquals(HealthcheckStatus.unhealthy, result.getStatus());
 
-        val unhealthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".unhealthy");
+        val unhealthyMeter = metricRegistry.getMeters().get(UNHEALTHY_KEY);
         assertNotNull(unhealthyMeter);
         assertEquals(1, unhealthyMeter.getCount());
     }
@@ -129,7 +137,7 @@ class HealthCheckerMetricsIntegrationTest {
         assertNotNull(result);
         assertEquals(HealthcheckStatus.healthy, result.getStatus());
 
-        val healthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".healthy");
+        val healthyMeter = metricRegistry.getMeters().get(HEALTHY_KEY);
         assertNotNull(healthyMeter);
         assertEquals(1, healthyMeter.getCount());
     }
@@ -143,7 +151,7 @@ class HealthCheckerMetricsIntegrationTest {
         healthChecker.get();
         healthChecker.get();
 
-        val healthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".healthy");
+        val healthyMeter = metricRegistry.getMeters().get(HEALTHY_KEY);
         assertNotNull(healthyMeter);
         assertEquals(3, healthyMeter.getCount(), "Healthy metric count should accumulate");
     }
@@ -165,10 +173,12 @@ class HealthCheckerMetricsIntegrationTest {
         assertNotNull(result2);
         assertEquals(HealthcheckStatus.unhealthy, result2.getStatus());
 
-        val healthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".healthy");
+        val healthyMeter = metricRegistry.getMeters().get(HEALTHY_KEY);
+        assertNotNull(healthyMeter);
         assertEquals(1, healthyMeter.getCount());
 
-        val unhealthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".unhealthy");
+        val unhealthyMeter = metricRegistry.getMeters().get(UNHEALTHY_KEY);
+        assertNotNull(unhealthyMeter);
         assertEquals(1, unhealthyMeter.getCount());
     }
 
@@ -185,12 +195,12 @@ class HealthCheckerMetricsIntegrationTest {
         assertEquals(HealthcheckStatus.unhealthy, result.getStatus());
 
         // Failure meter for the exception
-        val failureMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".failure");
+        val failureMeter = metricRegistry.getMeters().get(FAILURE_KEY);
         assertNotNull(failureMeter);
         assertEquals(1, failureMeter.getCount());
 
         // Unhealthy status because the second check failed
-        val unhealthyMeter = metricRegistry.getMeters().get("io.appform.ranger.healthcheck." + METRIC_ID + ".unhealthy");
+        val unhealthyMeter = metricRegistry.getMeters().get(UNHEALTHY_KEY);
         assertNotNull(unhealthyMeter);
         assertEquals(1, unhealthyMeter.getCount());
     }

@@ -93,14 +93,15 @@ public class MetricRecorder {
 
   public static void recordHealthcheckFailure(DataStoreType dataStoreType, String metricId) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, HEALTHCHECK, metricId, FAILURE)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
+              DATA_SOURCE, metricId, HEALTHCHECK, FAILURE)).mark();
     }
   }
 
   public static void recordHealthcheckStatus(DataStoreType dataStoreType, String metricId, boolean healthy) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, HEALTHCHECK, metricId,
-              healthy ? HEALTHY : UNHEALTHY)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
+              DATA_SOURCE, metricId, HEALTHCHECK, "status", healthy ? HEALTHY : UNHEALTHY)).mark();
     }
   }
 

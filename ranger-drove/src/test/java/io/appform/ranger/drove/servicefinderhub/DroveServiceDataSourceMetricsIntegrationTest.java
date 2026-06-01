@@ -72,9 +72,9 @@ class DroveServiceDataSourceMetricsIntegrationTest {
                 .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
         val config = buildConfig(wm, "drove-svc-src-1");
-        try (val droveClient = buildClient(wm, config)) {
+        try (val droveClient = buildClient(config)) {
             val dataSource = new DroveServiceDataSource<>(
-                    "drove-svc-src-1", config, MAPPER, "testns", droveClient);
+                    config, MAPPER, "testns", droveClient);
 
             val services = dataSource.services();
 
@@ -103,9 +103,9 @@ class DroveServiceDataSourceMetricsIntegrationTest {
                 .willReturn(aResponse().withStatus(500).withBody("Error")));
 
         val config = buildConfig(wm, "drove-svc-src-2");
-        try (val droveClient = buildClient(wm, config)) {
+        try (val droveClient = buildClient(config)) {
             val dataSource = new DroveServiceDataSource<>(
-                    "drove-svc-src-2", config, MAPPER, "testns", droveClient);
+                    config, MAPPER, "testns", droveClient);
 
             assertThrows(DroveCommunicationException.class, dataSource::services);
 
@@ -129,9 +129,9 @@ class DroveServiceDataSourceMetricsIntegrationTest {
                 .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
         val config = buildConfig(wm, "drove-svc-src-3");
-        try (val droveClient = buildClient(wm, config)) {
+        try (val droveClient = buildClient(config)) {
             val dataSource = new DroveServiceDataSource<>(
-                    "drove-svc-src-3", config, MAPPER, "testns", droveClient);
+                    config, MAPPER, "testns", droveClient);
 
             val active = dataSource.isActive();
 
@@ -155,9 +155,9 @@ class DroveServiceDataSourceMetricsIntegrationTest {
                 .willReturn(aResponse().withStatus(500).withBody("Error")));
 
         val config = buildConfig(wm, "drove-svc-src-4");
-        try (val droveClient = buildClient(wm, config)) {
+        try (val droveClient = buildClient(config)) {
             val dataSource = new DroveServiceDataSource<>(
-                    "drove-svc-src-4", config, MAPPER, "testns", droveClient);
+                    config, MAPPER, "testns", droveClient);
 
             // First call fails and sets upstreamAvailable to false
             assertThrows(DroveCommunicationException.class, dataSource::services);
@@ -186,7 +186,7 @@ class DroveServiceDataSourceMetricsIntegrationTest {
                 .build();
     }
 
-    private DroveCommunicator buildClient(WireMockRuntimeInfo wm, DroveUpstreamConfig config) {
+    private DroveCommunicator buildClient(DroveUpstreamConfig config) {
         return RangerDroveUtils.buildDroveClient("testns", config, MAPPER);
     }
 }

@@ -27,7 +27,6 @@ class DefaultNodeInfoResolverTest {
     @Test
     void testNodeInfoResolver() {
         val configuration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper("connectionString")
                 .namespace("test")
                 .environment("testing")

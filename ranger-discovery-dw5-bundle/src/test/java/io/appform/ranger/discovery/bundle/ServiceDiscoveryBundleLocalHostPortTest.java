@@ -100,7 +100,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper("myzookeeper:2181,myfavzookeeper:2181")
                 .namespace("test")
                 .environment("testing")
@@ -130,7 +129,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper(String.format("%s:2181", UUID.randomUUID()))
                 .namespace("test")
                 .environment("testing")
@@ -168,7 +166,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper("myzookeeper:2181,myfavzookeeper:2181")
                 .namespace("test")
                 .environment("testing")
@@ -206,7 +203,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper("myzookeeper:2181,myfavzookeeper:2181")
                 .namespace("test")
                 .environment("testing")
@@ -243,7 +239,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper("localhost:2181,myfavzookeeper:2181")
                 .namespace("test")
                 .environment("testing")
@@ -275,7 +270,6 @@ class ServiceDiscoveryBundleLocalHostPortTest {
         when(environment.admin()).thenReturn(adminEnvironment);
 
         serviceDiscoveryConfiguration = ServiceDiscoveryConfiguration.builder()
-                
                 .zookeeper("myfavzookeeper:2181")
                 .namespace("test")
                 .environment("testing")

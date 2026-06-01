@@ -22,17 +22,22 @@ import io.appform.ranger.core.signals.Signal;
 import io.appform.ranger.core.units.TestNodeData;
 import io.appform.ranger.core.util.MetricRecorder;
 import lombok.val;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServiceRegistryUpdaterMetricsIntegrationTest {
@@ -260,11 +265,7 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
     }
 
     private void sleep(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        await().pollDelay(Duration.ofMillis(ms)).until(() -> true);
     }
 
     // ==================== Test implementations ====================
@@ -315,13 +316,19 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         }
 
         @Override
-        public void start() {}
+        public void start() {
+            // No-op for test
+        }
 
         @Override
-        public void ensureConnected() {}
+        public void ensureConnected() {
+            // No-op for test
+        }
 
         @Override
-        public void stop() {}
+        public void stop() {
+            // No-op for test
+        }
 
         @Override
         public boolean isActive() {
@@ -339,9 +346,13 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         }
 
         @Override
-        public void start() {}
+        public void start() {
+            // No-op for test
+        }
 
         @Override
-        public void stop() {}
+        public void stop() {
+            // No-op for test
+        }
     }
 }
