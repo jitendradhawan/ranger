@@ -15,8 +15,6 @@
  */
 package io.appform.ranger.zookeeper.servicefinder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.Service;
@@ -63,7 +61,6 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
     }
 
     @Override
-    @MonitoredFunction
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {
         return checkForUpdateOnZookeeper(deserializer);
     }

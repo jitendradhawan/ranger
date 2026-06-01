@@ -15,7 +15,7 @@
  */
 package io.appform.ranger.http.servicefinderhub;
 
-import io.appform.functionmetrics.MonitoredFunction;
+
 import io.appform.ranger.core.finderhub.ServiceDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.DataStoreType;
@@ -43,7 +43,6 @@ public class HttpServiceDataSource<T> extends HttpNodeDataStoreConnector<T> impl
     }
 
     @Override
-    @MonitoredFunction
     public Collection<Service> services() {
        Objects.requireNonNull(config, "client config has not been set for node data");
         try {

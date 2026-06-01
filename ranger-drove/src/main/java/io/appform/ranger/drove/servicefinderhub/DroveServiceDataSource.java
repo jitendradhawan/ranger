@@ -16,7 +16,7 @@
 package io.appform.ranger.drove.servicefinderhub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.appform.functionmetrics.MonitoredFunction;
+
 import io.appform.ranger.core.finderhub.ServiceDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.DataStoreType;
@@ -49,7 +49,6 @@ public class DroveServiceDataSource<T> extends DroveNodeDataStoreConnector<T> im
     }
 
     @Override
-    @MonitoredFunction
     public Collection<Service> services() {
         requireNonNull(config, "client config has not been set for node data");
         requireNonNull(mapper, "mapper has not been set for node data");

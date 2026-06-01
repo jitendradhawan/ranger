@@ -15,7 +15,7 @@
  */
 package io.appform.ranger.zookeeper.serviceprovider;
 
-import io.appform.functionmetrics.MonitoredFunction;
+
 import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.NodeDataSink;
 import io.appform.ranger.core.model.Service;
@@ -48,7 +48,6 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
     }
 
     @Override
-    @MonitoredFunction
     public void updateState(S serializer, ServiceNode<T> serviceNode) {
         if (isStopped()) {
             log.warn("Node has been stopped already for service: {}. No update will be possible.",

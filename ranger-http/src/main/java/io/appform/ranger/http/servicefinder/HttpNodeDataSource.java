@@ -15,7 +15,7 @@
  */
 package io.appform.ranger.http.servicefinder;
 
-import io.appform.functionmetrics.MonitoredFunction;
+
 import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.Service;
@@ -68,7 +68,6 @@ public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> ex
     }
 
     @Override
-    @MonitoredFunction
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {
         return Optional.of(httpCommunicator.listNodes(service, deserializer));
     }
