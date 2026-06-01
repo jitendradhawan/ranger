@@ -21,10 +21,7 @@ import io.appform.ranger.core.healthcheck.Healthchecks;
 import io.appform.ranger.core.healthcheck.updater.HealthStatusHandler;
 import io.appform.ranger.core.healthcheck.updater.HealthUpdateHandler;
 import io.appform.ranger.core.healthcheck.updater.LastUpdatedHandler;
-import io.appform.ranger.core.model.NodeDataSink;
-import io.appform.ranger.core.model.Serializer;
-import io.appform.ranger.core.model.Service;
-import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.model.*;
 import io.appform.ranger.core.units.TestNodeData;
 import lombok.val;
 import org.junit.jupiter.api.Assertions;
@@ -59,6 +56,16 @@ class ServiceProviderTest {
     static class TestNodeDataSink<T extends TestNodeData, S extends TestSerializer<T>> implements NodeDataSink<T, S> {
 
         public TestNodeDataSink(){
+        }
+
+        @Override
+        public DataStoreType getDataStoreType() {
+            return DataStoreType.HTTP;
+        }
+
+        @Override
+        public String getMetricId() {
+            return "test-metric";
         }
 
         @Override

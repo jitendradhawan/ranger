@@ -164,7 +164,8 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
                           e.getClass().getSimpleName(),
                           e.getMessage());
                 callFailed = true;
-                MetricRecorder.recordNodeDataRefreshFailure(nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId(),
+                MetricRecorder.recordNodeDataRefreshFailure(serviceRegistry.getService().getServiceName(),
+                        nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId(),
                         stopwatch.elapsed(TimeUnit.MILLISECONDS));
             } finally {
                 stopwatch.stop();
@@ -175,7 +176,8 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
             log.warn("Node data source seems to be down. Keeping old list for {}." +
                              " Will update timestamp to keep stale date relevant.",
                      serviceRegistry.getService().getServiceName());
-            MetricRecorder.recordStaleDataRetained(nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId());
+            MetricRecorder.recordStaleDataRetained(serviceRegistry.getService().getServiceName(),
+                    nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId());
             serviceRegistry.updateNodes(serviceRegistry.nodeList()
                                                 .stream()
                                                 .filter(node -> HealthcheckStatus.healthy == node.getHealthcheckStatus())

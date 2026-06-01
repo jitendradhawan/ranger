@@ -48,6 +48,16 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
     }
 
     @Override
+    public DataStoreType getDataStoreType() {
+        return DataStoreType.ZK;
+    }
+
+    @Override
+    public String getMetricId() {
+        return metricId;
+    }
+
+    @Override
     public void updateState(S serializer, ServiceNode<T> serviceNode) {
         if (isStopped()) {
             log.warn("Node has been stopped already for service: {}. No update will be possible.",
@@ -78,7 +88,7 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
         try {
             return serializer.serialize(serviceNode);
         } catch (Exception e) {
-            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.ZK, metricId, MetricRecorder.SERIALIZAION, serviceName, e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.ZK, metricId, MetricRecorder.SERIALIZATION, serviceName, e.getClass().getSimpleName());
             throw e;
         }
     }

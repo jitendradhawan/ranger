@@ -211,7 +211,8 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
         val healthcheckUpdateSignalGenerator
                 = new ScheduledSignal<>(
                 service,
-                new HealthChecker(metricId, healthchecks, staleUpdateThresholdMs),
+                new HealthChecker(usableNodeDataSource.getDataStoreType(), metricId, healthchecks,
+                        staleUpdateThresholdMs),
                 Collections.emptyList(),
                 healthUpdateIntervalMs
         );

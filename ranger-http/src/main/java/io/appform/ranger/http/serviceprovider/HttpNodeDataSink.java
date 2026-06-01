@@ -57,6 +57,16 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
     }
 
     @Override
+    public DataStoreType getDataStoreType() {
+        return DataStoreType.HTTP;
+    }
+
+    @Override
+    public String getMetricId() {
+        return metricId;
+    }
+
+    @Override
     public void updateState(S serializer, ServiceNode<T> serviceNode) {
         requireNonNull(config, "client config has not been set for node data");
         requireNonNull(mapper, "mapper has not been set for node data");
@@ -90,7 +100,7 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
         try {
             return serializer.serialize(serviceNode);
         } catch (Exception e) {
-            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.HTTP, metricId, MetricRecorder.SERIALIZAION, serviceName, e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.HTTP, metricId, MetricRecorder.SERIALIZATION, serviceName, e.getClass().getSimpleName());
             log.error("Error serializing data for service {} with node {} with exception", serviceName, serviceNode, e);
             throw e;
         }

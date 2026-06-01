@@ -15,6 +15,7 @@
  */
 package io.appform.ranger.core.healthcheck;
 
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.util.MetricRecorder;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -28,13 +29,16 @@ import java.util.function.Supplier;
 @Slf4j
 public class HealthChecker implements Supplier<HealthcheckResult> {
 
+    private final DataStoreType dataStoreType;
     private final String metricId;
     private final List<Healthcheck> healthChecks;
     private final int staleUpdateThreshold;
     private HealthcheckStatus lastHealthcheckStatus;
     private long lastUpdatedTime;
 
-    public HealthChecker(String metricId, List<Healthcheck> healthChecks, int staleUpdateThreshold) {
+    public HealthChecker(DataStoreType dataStoreType, String metricId,
+                         List<Healthcheck> healthChecks, int staleUpdateThreshold) {
+        this.dataStoreType = dataStoreType;
         this.metricId = metricId;
         this.healthChecks = healthChecks;
         this.staleUpdateThreshold = staleUpdateThreshold;
@@ -60,13 +64,13 @@ public class HealthChecker implements Supplier<HealthcheckResult> {
             catch (Exception e) {
                 log.error("Error running healthcheck. Setting node to unhealthy", e);
                 healthcheckStatus = HealthcheckStatus.unhealthy;
-                MetricRecorder.recordHealthcheckFailure(metricId);
+                MetricRecorder.recordHealthcheckFailure(dataStoreType, metricId);
             }
             if (HealthcheckStatus.unhealthy == healthcheckStatus) {
                 break;
             }
         }
-        MetricRecorder.recordHealthcheckStatus(metricId, HealthcheckStatus.healthy == healthcheckStatus);
+        MetricRecorder.recordHealthcheckStatus(dataStoreType, metricId, HealthcheckStatus.healthy == healthcheckStatus);
         //Trigger update only if state change has happened
         //Conditions on which update will be triggered
         //1. First time
