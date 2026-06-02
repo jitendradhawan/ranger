@@ -16,7 +16,6 @@
 package io.appform.ranger.core.healthcheck;
 
 import com.codahale.metrics.MetricRegistry;
-import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.util.MetricRecorder;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,12 +28,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class HealthCheckerMetricsIntegrationTest {
 
     private MetricRegistry metricRegistry;
-    private static final String METRIC_ID = "test-hc-metric";
 
-    // Metric keys produced by MetricRecorder for DataStoreType.ZK and METRIC_ID:
-    //   recordHealthcheckStatus  -> io.appform.ranger.dataStoreType.ZK.dataSource.<id>.healthcheck.status.<healthy|unhealthy>
-    //   recordHealthcheckFailure -> io.appform.ranger.dataStoreType.ZK.dataSource.<id>.healthcheck.failure
-    private static final String HC_PREFIX       = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".healthcheck";
+    // Metric keys produced by MetricRecorder (no DataStoreType/metricId context):
+    //   recordHealthcheckStatus  -> io.appform.ranger.healthChecker.status.<healthy|unhealthy>
+    //   recordHealthcheckFailure -> io.appform.ranger.healthChecker.failure
+    private static final String HC_PREFIX       = "io.appform.ranger.healthChecker";
     private static final String HEALTHY_KEY     = HC_PREFIX + ".status.healthy";
     private static final String UNHEALTHY_KEY   = HC_PREFIX + ".status.unhealthy";
     private static final String FAILURE_KEY     = HC_PREFIX + ".failure";
@@ -47,7 +45,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testHealthyCheck_recordsHealthyMetric() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID,
+        val healthChecker = new HealthChecker(
                 List.of(() -> HealthcheckStatus.healthy), 10000);
 
         val result = healthChecker.get();
@@ -68,7 +66,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testUnhealthyCheck_recordsUnhealthyMetric() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID,
+        val healthChecker = new HealthChecker(
                 List.of(() -> HealthcheckStatus.unhealthy), 10000);
 
         val result = healthChecker.get();
@@ -87,7 +85,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testExceptionInHealthcheck_recordsFailureAndUnhealthyMetrics() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID, List.of(() -> {
+        val healthChecker = new HealthChecker(List.of(() -> {
             throw new RuntimeException("Healthcheck error");
         }), 10000);
 
@@ -109,7 +107,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testMultipleHealthchecks_firstUnhealthy_shortCircuits() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID, List.of(
+        val healthChecker = new HealthChecker(List.of(
                 () -> HealthcheckStatus.unhealthy,
                 () -> HealthcheckStatus.healthy // Should not be reached
         ), 10000);
@@ -126,7 +124,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testMultipleHealthchecks_allHealthy() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID, List.of(
+        val healthChecker = new HealthChecker(List.of(
                 () -> HealthcheckStatus.healthy,
                 () -> HealthcheckStatus.healthy,
                 () -> HealthcheckStatus.healthy
@@ -144,7 +142,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testRepeatedCalls_metricsAccumulate() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID,
+        val healthChecker = new HealthChecker(
                 List.of(() -> HealthcheckStatus.healthy), 0); // staleUpdateThreshold=0 => always returns result
 
         healthChecker.get();
@@ -160,7 +158,7 @@ class HealthCheckerMetricsIntegrationTest {
     void testHealthStatusTransition_bothMetricsRecorded() {
         // Start healthy, then transition to unhealthy
         val statusHolder = new HealthcheckStatus[]{HealthcheckStatus.healthy};
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID, List.of(() -> statusHolder[0]), 0);
+        val healthChecker = new HealthChecker(List.of(() -> statusHolder[0]), 0);
 
         // First call: healthy
         val result1 = healthChecker.get();
@@ -184,7 +182,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     @Test
     void testExceptionInSecondHealthcheck_recordsFailure() {
-        val healthChecker = new HealthChecker(DataStoreType.ZK, METRIC_ID, List.of(
+        val healthChecker = new HealthChecker(List.of(
                 () -> HealthcheckStatus.healthy, // First passes
                 () -> { throw new RuntimeException("Second fails"); } // Second throws
         ), 10000);

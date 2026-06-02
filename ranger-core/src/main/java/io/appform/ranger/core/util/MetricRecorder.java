@@ -36,6 +36,7 @@ public class MetricRecorder {
   public static final String DESERIALIZATION = "deserialization";
   public static final String STALE_DATA_RETAINED = "staleDataRetained";
   public static final String ZK_READ = "zkRead";
+  public static final String HEALTH_CHECKER = "healthChecker";
 
   private static MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -91,17 +92,15 @@ public class MetricRecorder {
     }
   }
 
-  public static void recordHealthcheckFailure(DataStoreType dataStoreType, String metricId) {
+  public static void recordHealthcheckFailure() {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HEALTHCHECK, FAILURE)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, HEALTH_CHECKER, FAILURE)).mark();
     }
   }
 
-  public static void recordHealthcheckStatus(DataStoreType dataStoreType, String metricId, boolean healthy) {
+  public static void recordHealthcheckStatus(boolean healthy) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HEALTHCHECK, "status", healthy ? HEALTHY : UNHEALTHY)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, HEALTH_CHECKER,"status", healthy ? HEALTHY : UNHEALTHY)).mark();
     }
   }
 
