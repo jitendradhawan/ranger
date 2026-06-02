@@ -36,6 +36,7 @@ public class MetricRecorder {
   public static final String STALE_DATA_RETAINED = "staleDataRetained";
   public static final String ZK_READ = "zkRead";
   public static final String HEALTH_CHECKER = "healthChecker";
+  public static final String NODE_COUNT = "nodeCount";
 
   private static MetricRegistry metricRegistry;
 
@@ -75,12 +76,14 @@ public class MetricRecorder {
     }
   }
 
-  public static void recordStaleDataRetained(String serviceName, DataStoreType dataStoreType, String upstreamId) {
+  public static void recordStaleDataRetained(String serviceName, DataStoreType dataStoreType, String upstreamId, int size) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, STALE_DATA_RETAINED)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
+      metricRegistry.histogram(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED, NODE_COUNT)).update(size);
     }
   }
 
@@ -252,4 +255,19 @@ public class MetricRecorder {
     }
   }
 
+  public static void recordServiceRegistryUpdateNodeCount(String serviceName, DataStoreType dataStoreType, String upstreamId, int size) {
+    if (metricRegistry != null) {
+      metricRegistry.histogram(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+                      DATA_SOURCE, upstreamId, "serviceRegistryUpdate", SERVICE_NAME, serviceName, NODE_COUNT))
+              .update(size);
+    }
+  }
+
+  public static void recordNodesFetchedCount(String serviceName, DataStoreType dataStoreType, String upstreamId, int size) {
+    if (metricRegistry != null) {
+      metricRegistry.histogram(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+                      DATA_SOURCE, upstreamId, LIST_NODES, SERVICE_NAME, serviceName, NODE_COUNT))
+              .update(size);
+    }
+  }
 }

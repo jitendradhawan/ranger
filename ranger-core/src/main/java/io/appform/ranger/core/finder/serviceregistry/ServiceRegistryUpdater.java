@@ -23,6 +23,7 @@ import dev.failsafe.RetryPolicy;
 import io.appform.ranger.core.healthcheck.HealthcheckStatus;
 import io.appform.ranger.core.model.Deserializer;
 import io.appform.ranger.core.model.NodeDataSource;
+import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.core.model.ServiceRegistry;
 import io.appform.ranger.core.signals.Signal;
 import io.appform.ranger.core.util.Exceptions;
@@ -145,12 +146,17 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
             try {
                 val nodeList = nodeDataSource.refresh(deserializer).orElse(null);
                 if (null != nodeList) {
+                    MetricRecorder.recordNodesFetchedCount(serviceRegistry.getService().getServiceName(),
+                            nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId(), nodeList.size());
                     log.debug("Updating nodeList of size: {} for [{}]", nodeList.size(),
                               serviceRegistry.getService().getServiceName());
                     val livenessCheckMaxAge = nodeDataSource.healthcheckZombieCheckThresholdTime(serviceRegistry.getService());
                     //Remove all stale nodes before updating. This is done centrally to ensure some data sources
                     //don't skip this check. Some control is still provided so that they can overload.
-                    serviceRegistry.updateNodes(FinderUtils.filterValidNodes(serviceRegistry.getService(), nodeList, livenessCheckMaxAge));
+                    List<ServiceNode<T>> validNodes = FinderUtils.filterValidNodes(serviceRegistry.getService(), nodeList, livenessCheckMaxAge);
+                    MetricRecorder.recordServiceRegistryUpdateNodeCount(serviceRegistry.getService().getServiceName(),
+                            nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId(), validNodes.size());
+                    serviceRegistry.updateNodes(validNodes);
                     MetricRecorder.recordNodeDataRefreshSuccess(nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId(),
                             stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 }
@@ -176,13 +182,14 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
             log.warn("Node data source seems to be down. Keeping old list for {}." +
                              " Will update timestamp to keep stale date relevant.",
                      serviceRegistry.getService().getServiceName());
-            serviceRegistry.updateNodes(serviceRegistry.nodeList()
-                                                .stream()
-                                                .filter(node -> HealthcheckStatus.healthy == node.getHealthcheckStatus())
-                                                .map(node -> node.setLastUpdatedTimeStamp(currTime))
-                                                .toList());
+            val retainedNodes = serviceRegistry.nodeList()
+                    .stream()
+                    .filter(node -> HealthcheckStatus.healthy == node.getHealthcheckStatus())
+                    .map(node -> node.setLastUpdatedTimeStamp(currTime))
+                    .toList();
+            serviceRegistry.updateNodes(retainedNodes);
             MetricRecorder.recordStaleDataRetained(serviceRegistry.getService().getServiceName(),
-                    nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId());
+                    nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId(), retainedNodes.size());
         }
     }
 

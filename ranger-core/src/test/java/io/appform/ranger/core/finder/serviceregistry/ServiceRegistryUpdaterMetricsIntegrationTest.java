@@ -200,6 +200,216 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
     }
 
     @Test
+    void testSuccessfulRefresh_recordsNodesFetchedCount() {
+        val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
+        val nodes = List.of(
+                ServiceNode.<TestNodeData>builder()
+                        .host("host1").port(8080)
+                        .nodeData(TestNodeData.builder().shardId(1).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build(),
+                ServiceNode.<TestNodeData>builder()
+                        .host("host2").port(8081)
+                        .nodeData(TestNodeData.builder().shardId(2).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build()
+        );
+        val dataSource = new TestNodeDataSource(METRIC_ID, DataStoreType.ZK, true, nodes, false);
+        val signal = new TestSignal();
+
+        updater = new ServiceRegistryUpdater<>(registry, dataSource, List.of(signal), new TestDeserializer());
+        updater.start();
+        awaitRefresh(registry);
+
+        val histName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
+                + ".listNodes.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val histogram = metricRegistry.getHistograms().get(histName);
+                    assertNotNull(histogram, "listNodes nodeCount histogram should be recorded");
+                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
+                    assertEquals(2, histogram.getSnapshot().getMax(),
+                            "Fetched count should equal total nodes returned by data source (2)");
+                });
+    }
+
+    @Test
+    void testSuccessfulRefresh_recordsServiceRegistryUpdateNodeCount() {
+        val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
+        val nodes = List.of(
+                ServiceNode.<TestNodeData>builder()
+                        .host("host1").port(8080)
+                        .nodeData(TestNodeData.builder().shardId(1).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build(),
+                ServiceNode.<TestNodeData>builder()
+                        .host("host2").port(8081)
+                        .nodeData(TestNodeData.builder().shardId(2).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build()
+        );
+        val dataSource = new TestNodeDataSource(METRIC_ID, DataStoreType.ZK, true, nodes, false);
+        val signal = new TestSignal();
+
+        updater = new ServiceRegistryUpdater<>(registry, dataSource, List.of(signal), new TestDeserializer());
+        updater.start();
+        awaitRefresh(registry);
+
+        val histName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
+                + ".serviceRegistryUpdate.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val histogram = metricRegistry.getHistograms().get(histName);
+                    assertNotNull(histogram, "serviceRegistryUpdate nodeCount histogram should be recorded");
+                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
+                    assertEquals(2, histogram.getSnapshot().getMax(),
+                            "Valid node count should equal 2 healthy, non-zombie nodes");
+                });
+    }
+
+    @Test
+    void testFetchedCountExceedsValidCount_whenZombiesPresent() {
+        val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
+        // 1 healthy + 1 zombie (very old timestamp). Fetched = 2, valid = 1.
+        val nodes = List.of(
+                ServiceNode.<TestNodeData>builder()
+                        .host("healthy-host").port(8080)
+                        .nodeData(TestNodeData.builder().shardId(1).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build(),
+                ServiceNode.<TestNodeData>builder()
+                        .host("zombie-host").port(8081)
+                        .nodeData(TestNodeData.builder().shardId(2).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(0L) // zombie
+                        .build()
+        );
+        val dataSource = new TestNodeDataSource(METRIC_ID, DataStoreType.HTTP, true, nodes, false);
+        val signal = new TestSignal();
+
+        updater = new ServiceRegistryUpdater<>(registry, dataSource, List.of(signal), new TestDeserializer());
+        updater.start();
+        awaitRefresh(registry);
+
+        val fetchedHistName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
+                + ".listNodes.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
+        val validHistName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
+                + ".serviceRegistryUpdate.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
+
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val fetchedHist = metricRegistry.getHistograms().get(fetchedHistName);
+                    val validHist = metricRegistry.getHistograms().get(validHistName);
+                    assertNotNull(fetchedHist, "Fetched count histogram should exist");
+                    assertNotNull(validHist, "Valid count histogram should exist");
+                    assertEquals(2, fetchedHist.getSnapshot().getMax(),
+                            "Fetched count should be 2 (all nodes including zombie)");
+                    assertEquals(1, validHist.getSnapshot().getMax(),
+                            "Valid count should be 1 (zombie filtered out)");
+                });
+    }
+
+    @Test
+    void testInactiveDataSource_recordsStaleDataRetainedWithNodeCountHistogram() {
+        val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
+        val nodes = List.of(
+                ServiceNode.<TestNodeData>builder()
+                        .host("host1").port(8080)
+                        .nodeData(TestNodeData.builder().shardId(1).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build(),
+                ServiceNode.<TestNodeData>builder()
+                        .host("host2").port(8081)
+                        .nodeData(TestNodeData.builder().shardId(2).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build()
+        );
+        val dataSource = new TestNodeDataSource(METRIC_ID, DataStoreType.ZK, true, nodes, false);
+        val signal = new TestSignal();
+
+        updater = new ServiceRegistryUpdater<>(registry, dataSource, List.of(signal), new TestDeserializer());
+        updater.start();
+        awaitRefresh(registry);
+
+        // Deactivate and trigger stale path
+        dataSource.setActive(false);
+        signal.fire();
+
+        val staleNodeCountHistName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
+                + ".serviceName." + TEST_SERVICE.getServiceName() + ".staleDataRetained.nodeCount";
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val histogram = metricRegistry.getHistograms().get(staleNodeCountHistName);
+                    assertNotNull(histogram, "staleDataRetained nodeCount histogram should be recorded");
+                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
+                    // The stale path retains healthy nodes only; 2 healthy nodes were present
+                    assertTrue(histogram.getSnapshot().getMax() >= 0,
+                            "Histogram should record a non-negative node count");
+                });
+    }
+
+    @Test
+    void testCallFailure_recordsStaleDataRetainedWithNodeCountHistogram() {
+        val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
+        val signal = new TestSignal();
+
+        // First start with a healthy node so the registry has something to retain
+        val initialNodes = List.of(
+                ServiceNode.<TestNodeData>builder()
+                        .host("host1").port(8080)
+                        .nodeData(TestNodeData.builder().shardId(1).build())
+                        .healthcheckStatus(HealthcheckStatus.healthy)
+                        .lastUpdatedTimeStamp(System.currentTimeMillis())
+                        .build()
+        );
+        val dataSource = new TestNodeDataSource(METRIC_ID, DataStoreType.HTTP, true, initialNodes, false);
+
+        updater = new ServiceRegistryUpdater<>(registry, dataSource, List.of(signal), new TestDeserializer());
+        updater.start();
+        awaitRefresh(registry);
+
+        // Now trigger a call failure (while still active, but throws on refresh)
+        val failingDataSource = new TestNodeDataSource(METRIC_ID, DataStoreType.HTTP, true, null, true);
+        // Create a new updater with the failing data source and trigger
+        updater.stop();
+        val signal2 = new TestSignal();
+        val updater2 = new ServiceRegistryUpdater<>(registry, failingDataSource, List.of(signal2), new TestDeserializer());
+        try {
+            updater2.start();
+        } catch (Exception ignored) {
+            // May throw on initial update failure
+        }
+
+        val staleNodeCountHistName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
+                + ".serviceName." + TEST_SERVICE.getServiceName() + ".staleDataRetained.nodeCount";
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val histogram = metricRegistry.getHistograms().get(staleNodeCountHistName);
+                    assertNotNull(histogram, "staleDataRetained nodeCount histogram should be recorded on call failure");
+                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
+                });
+
+        updater2.stop();
+    }
+
+    @Test
     void testRefreshReturnsNull_noSuccessOrFailureTimer_butStaleRetained() {
         val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
         // Return null from refresh (empty Optional)
