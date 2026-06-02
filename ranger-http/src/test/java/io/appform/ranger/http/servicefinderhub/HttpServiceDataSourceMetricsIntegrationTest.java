@@ -130,7 +130,7 @@ class HttpServiceDataSourceMetricsIntegrationTest {
 
         // HttpNodeDataStoreConnector.isActive() records status with config.getId()
         val statusMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.HTTP.sds-metric-4.active");
+                METRIC_PREFIX + ".dataStoreType.HTTP.dataSource.sds-metric-4.active");
         assertNotNull(statusMeter, "Active status meter should be recorded");
         assertEquals(1, statusMeter.getCount());
     }

@@ -84,13 +84,13 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         sleep(100); // Allow time for MetricRecorder call after updateNodes
 
         // Verify success timer
-        val timerName = "io.appform.ranger.dataSource.ZK." + METRIC_ID + ".nodeDataRefresh.success";
+        val timerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.success";
         val timer = metricRegistry.getTimers().get(timerName);
         assertNotNull(timer, "Node data refresh success timer should exist");
         assertTrue(timer.getCount() >= 1, "Timer should have at least 1 update");
 
         // No failure timer
-        val failureTimerName = "io.appform.ranger.dataSource.ZK." + METRIC_ID + ".nodeDataRefresh.failure";
+        val failureTimerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.failure";
         val failureTimer = metricRegistry.getTimers().get(failureTimerName);
         assertTrue(failureTimer == null || failureTimer.getCount() == 0,
                 "Failure timer should not be recorded on success");
@@ -114,7 +114,7 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         sleep(200);
 
         // Verify failure timer
-        val failureTimerName = "io.appform.ranger.dataSource.HTTP." + METRIC_ID + ".nodeDataRefresh.failure";
+        val failureTimerName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID + ".nodeDataRefresh.failure";
         val failureTimer = metricRegistry.getTimers().get(failureTimerName);
         assertNotNull(failureTimer, "Node data refresh failure timer should exist");
         assertTrue(failureTimer.getCount() >= 1, "Failure timer should have at least 1 update");
@@ -146,7 +146,7 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         sleep(200);
 
         // Verify stale data retained meter
-        val meterName = "io.appform.ranger.dataSource.DROVE." + METRIC_ID + ".staleDataRetained";
+        val meterName = "io.appform.ranger.dataStoreType.DROVE.dataSource." + METRIC_ID + ".staleDataRetained";
         val meter = metricRegistry.getMeters().get(meterName);
         assertNotNull(meter, "Stale data retained meter should exist");
         assertTrue(meter.getCount() >= 1, "Stale data retained should be recorded at least once");
@@ -188,7 +188,7 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         assertTrue(svcZombieMeter.getCount() >= 1);
 
         // Also verify success timer still recorded
-        val timerName = "io.appform.ranger.dataSource.ZK." + METRIC_ID + ".nodeDataRefresh.success";
+        val timerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.success";
         val timer = metricRegistry.getTimers().get(timerName);
         assertNotNull(timer);
         assertTrue(timer.getCount() >= 1);
@@ -238,7 +238,7 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
 
         // When refresh returns null, no success timer should be incremented for that second call
         // The success timer from the first call should be 1
-        val timerName = "io.appform.ranger.dataSource.ZK." + METRIC_ID + ".nodeDataRefresh.success";
+        val timerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.success";
         val beforeTimer = metricRegistry.getTimers().get(timerName);
         final long beforeCount = beforeTimer == null ? 0L : beforeTimer.getCount();
 

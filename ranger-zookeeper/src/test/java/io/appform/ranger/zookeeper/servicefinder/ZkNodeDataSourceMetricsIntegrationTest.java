@@ -92,7 +92,7 @@ class ZkNodeDataSourceMetricsIntegrationTest {
 
         // Verify active status metric
         val activeMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.zk-node-src-1.active");
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-1.active");
         assertNotNull(activeMeter, "Active status meter should be recorded");
         assertEquals(1, activeMeter.getCount());
 
@@ -124,7 +124,7 @@ class ZkNodeDataSourceMetricsIntegrationTest {
 
         // Verify inactive status metric
         val inactiveMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.zk-node-src-2.inactive");
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-2.inactive");
         assertNotNull(inactiveMeter, "Inactive status meter should be recorded");
         assertEquals(1, inactiveMeter.getCount());
 

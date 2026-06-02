@@ -99,13 +99,13 @@ class ZkNodeDataSinkMetricsIntegrationTest {
 
         // Verify success meter
         val successMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.dataSource.zk-sink-1.nodeDataSink.update.success");
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-sink-1.nodeDataSink.update.success");
         assertNotNull(successMeter, "Node data sink update success meter should be recorded");
         assertEquals(1, successMeter.getCount());
 
         // No failure
         val failureMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.dataSource.zk-sink-1.nodeDataSink.update.failure");
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-sink-1.nodeDataSink.update.failure");
         assertNull(failureMeter, "No failure meter should be recorded on success");
 
         sink.stop();
@@ -140,7 +140,7 @@ class ZkNodeDataSinkMetricsIntegrationTest {
 
         // Verify 2 success markers
         val successMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.dataSource.zk-sink-2.nodeDataSink.update.success");
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-sink-2.nodeDataSink.update.success");
         assertNotNull(successMeter, "Success meter should exist");
         assertEquals(2, successMeter.getCount());
 
@@ -213,9 +213,9 @@ class ZkNodeDataSinkMetricsIntegrationTest {
 
         // No success or failure metrics
         assertNull(metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.dataSource.zk-sink-4.nodeDataSink.update.success"));
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-sink-4.nodeDataSink.update.success"));
         assertNull(metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.dataSource.zk-sink-4.nodeDataSink.update.failure"));
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-sink-4.nodeDataSink.update.failure"));
     }
 
     // ==================== isActive() via ZkNodeDataStoreConnector base class ====================
@@ -231,7 +231,7 @@ class ZkNodeDataSinkMetricsIntegrationTest {
 
         assertTrue(active);
         val activeMeter = metricRegistry.getMeters().get(
-                METRIC_PREFIX + ".dataSource.ZK.zk-sink-5.active");
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-sink-5.active");
         assertNotNull(activeMeter, "Active meter should be recorded");
         assertEquals(1, activeMeter.getCount());
 

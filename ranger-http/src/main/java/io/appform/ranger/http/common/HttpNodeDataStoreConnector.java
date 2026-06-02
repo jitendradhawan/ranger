@@ -62,7 +62,7 @@ public class HttpNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> 
 
     @Override
     public boolean isActive() {
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.HTTP, config.getId(), true);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.HTTP, config.getId(),true);
         return true;
     }
 }

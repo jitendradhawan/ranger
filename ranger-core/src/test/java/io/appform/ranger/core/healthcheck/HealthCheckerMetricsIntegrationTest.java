@@ -32,9 +32,9 @@ class HealthCheckerMetricsIntegrationTest {
     private static final String METRIC_ID = "test-hc-metric";
 
     // Metric keys produced by MetricRecorder for DataStoreType.ZK and METRIC_ID:
-    //   recordHealthcheckStatus  -> io.appform.ranger.dataSource.ZK.dataSource.<id>.healthcheck.status.<healthy|unhealthy>
-    //   recordHealthcheckFailure -> io.appform.ranger.dataSource.ZK.dataSource.<id>.healthcheck.failure
-    private static final String HC_PREFIX       = "io.appform.ranger.dataSource.ZK.dataSource." + METRIC_ID + ".healthcheck";
+    //   recordHealthcheckStatus  -> io.appform.ranger.dataStoreType.ZK.dataSource.<id>.healthcheck.status.<healthy|unhealthy>
+    //   recordHealthcheckFailure -> io.appform.ranger.dataStoreType.ZK.dataSource.<id>.healthcheck.failure
+    private static final String HC_PREFIX       = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".healthcheck";
     private static final String HEALTHY_KEY     = HC_PREFIX + ".status.healthy";
     private static final String UNHEALTHY_KEY   = HC_PREFIX + ".status.unhealthy";
     private static final String FAILURE_KEY     = HC_PREFIX + ".failure";

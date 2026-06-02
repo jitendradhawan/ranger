@@ -139,7 +139,7 @@ class DroveServiceDataSourceMetricsIntegrationTest {
 
             // Verify active status
             val activeMeter = metricRegistry.getMeters().get(
-                    METRIC_PREFIX + ".dataSource.DROVE.drove-svc-src-3.active");
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-svc-src-3.active");
             assertNotNull(activeMeter, "Active status meter should be recorded");
             assertEquals(1, activeMeter.getCount());
         }
@@ -168,7 +168,7 @@ class DroveServiceDataSourceMetricsIntegrationTest {
 
             // Verify inactive status
             val inactiveMeter = metricRegistry.getMeters().get(
-                    METRIC_PREFIX + ".dataSource.DROVE.drove-svc-src-4.inactive");
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-svc-src-4.inactive");
             assertNotNull(inactiveMeter, "Inactive status meter should be recorded");
             assertEquals(1, inactiveMeter.getCount());
         }

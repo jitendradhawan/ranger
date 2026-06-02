@@ -10,7 +10,7 @@ import static java.util.concurrent.TimeUnit.*;
 public class MetricRecorder {
 
   private static final String PACKAGE_PREFIX = "io.appform.ranger";
-  private static final String ACTIVE = "active";
+  public static final String ACTIVE = "active";
   private static final String INACTIVE = "inactive";
   private static final String NULL_OR_EMPTY_RESPONSE = "nullOrEmptyResponse";
   private static final String DATA_STORE_TYPE = "dataStoreType";
@@ -52,55 +52,55 @@ public class MetricRecorder {
 
   public static void recordNoteDataSourceStatus(DataStoreType dataStoreType, String metricId, boolean active) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
-              metricId, active ? ACTIVE : INACTIVE)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, active ? ACTIVE : INACTIVE)).mark();
     }
   }
 
   public static void recordNodeDataRefreshSuccess(DataStoreType dataStoreType, String metricId, long elapsed) {
     if (metricRegistry != null) {
-      metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
-                      metricId, NODE_DATA_REFRESH, SUCCESS)).update(elapsed, MILLISECONDS);
+      metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, NODE_DATA_REFRESH, SUCCESS)).update(elapsed, MILLISECONDS);
     }
   }
 
   public static void recordNodeDataRefreshFailure(String serviceName, DataStoreType dataStoreType,
                                                   String metricId, long elapsed) {
     if (metricRegistry != null) {
-      metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
-                      metricId, NODE_DATA_REFRESH, FAILURE)).update(elapsed, MILLISECONDS);
-      metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
-              metricId, SERVICE_NAME, serviceName, NODE_DATA_REFRESH, FAILURE))
+      metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, NODE_DATA_REFRESH, FAILURE)).update(elapsed, MILLISECONDS);
+      metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+                      DATA_SOURCE, metricId, SERVICE_NAME, serviceName, NODE_DATA_REFRESH, FAILURE))
               .update(elapsed, MILLISECONDS);
     }
   }
 
   public static void recordStaleDataRetained(String serviceName, DataStoreType dataStoreType, String metricId) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
-              metricId, STALE_DATA_RETAINED)).mark();
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
-              metricId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, STALE_DATA_RETAINED)).mark();
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
     }
   }
 
   public static void recordNodeDataSinkUpdateStatus(DataStoreType dataStoreType, String metricId, String status) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, metricId, NODE_DATA_SINK, UPDATE, status)).mark();
     }
   }
 
   public static void recordHealthcheckFailure(DataStoreType dataStoreType, String metricId) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, metricId, HEALTHCHECK, FAILURE)).mark();
     }
   }
 
   public static void recordHealthcheckStatus(DataStoreType dataStoreType, String metricId, boolean healthy) {
     if (metricRegistry != null) {
-      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_SOURCE, dataStoreType.name(),
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, metricId, HEALTHCHECK, "status", healthy ? HEALTHY : UNHEALTHY)).mark();
     }
   }
