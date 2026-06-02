@@ -35,11 +35,11 @@ import static io.appform.ranger.core.util.MetricRecorder.SUCCESS;
 @Slf4j
 public class HttpServiceDataSource<T> extends HttpNodeDataStoreConnector<T> implements ServiceDataSource {
 
-    private final String metricId;
+    private final String upstreamId;
 
-    public HttpServiceDataSource(String metricId, HttpClientConfig config, HttpCommunicator<T> httpClient) {
+    public HttpServiceDataSource(String upstreamId, HttpClientConfig config, HttpCommunicator<T> httpClient) {
         super(config, httpClient);
-        this.metricId = metricId;
+        this.upstreamId = upstreamId;
     }
 
     @Override
@@ -47,11 +47,11 @@ public class HttpServiceDataSource<T> extends HttpNodeDataStoreConnector<T> impl
        Objects.requireNonNull(config, "client config has not been set for node data");
         try {
             val result = httpCommunicator.services();
-            MetricRecorder.recordServicesFetchStatus(DataStoreType.HTTP, metricId, SUCCESS);
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.HTTP, upstreamId, SUCCESS);
             return result;
         }
         catch (Exception e) {
-            MetricRecorder.recordServicesFetchStatus(DataStoreType.HTTP, metricId, FAILURE);
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.HTTP, upstreamId, FAILURE);
             throw e;
         }
     }

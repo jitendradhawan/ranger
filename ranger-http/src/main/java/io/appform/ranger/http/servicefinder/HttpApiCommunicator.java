@@ -50,7 +50,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
     private final AtomicBoolean upstreamAvailable = new AtomicBoolean(true);
     private final ScheduledExecutorService resetter = Executors.newSingleThreadScheduledExecutor();
 
-    private final String metricId;
+    private final String upstreamId;
     @Getter
     private final OkHttpClient httpClient;
     private final HttpClientConfig config;
@@ -58,7 +58,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
 
     public HttpApiCommunicator(OkHttpClient httpClient, HttpClientConfig config, ObjectMapper mapper) {
         Objects.requireNonNull(mapper, "mapper has not been set for node data");
-        this.metricId = config.getId();
+        this.upstreamId = config.getId();
         this.httpClient = httpClient;
         this.config = config;
         this.mapper = mapper;
@@ -86,7 +86,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                     .build();
 
             try (val response = httpClient.newCall(request).execute()) {
-                MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, metricId, SERVICES_LIST, response.code());
+                MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, upstreamId, SERVICES_LIST, response.code());
                 if (response.isSuccessful()) {
                     return parseServices(response, httpUrl);
                 }
@@ -96,7 +96,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                 }
             }
             catch (Exception e) {
-                MetricRecorder.recordRemoteCallUnknownFailure(DataStoreType.HTTP, metricId, SERVICES_LIST, e.getClass().getSimpleName());
+                MetricRecorder.recordRemoteCallUnknownFailure(DataStoreType.HTTP, upstreamId, SERVICES_LIST, e.getClass().getSimpleName());
                 throw new HttpCommunicationException(
                         "Error parsing the response from server for url: " + httpUrl
                                 + " with exception " + e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -125,7 +125,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                     .build();
 
             try (val response = httpClient.newCall(request).execute()) {
-                MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, metricId, LIST_NODES, response.code());
+                MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, upstreamId, LIST_NODES, response.code());
                 if (response.isSuccessful()) {
                     return parseNodeList(service, deserializer, response, httpUrl);
                 }
@@ -134,7 +134,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                 }
             }
             catch (Exception e) {
-                MetricRecorder.recordRemoteCallUnknownFailure(DataStoreType.HTTP, metricId, LIST_NODES, e.getClass().getSimpleName(), service.getServiceName());
+                MetricRecorder.recordRemoteCallUnknownFailure(DataStoreType.HTTP, upstreamId, LIST_NODES, e.getClass().getSimpleName(), service.getServiceName());
                 throw new HttpCommunicationException("Error getting node data from the http endpoint: " + httpUrl +
                                                              ". Error: " + e.getMessage());
             }
@@ -173,7 +173,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                 val serviceDataSourceResponse = mapper.readValue(bytes, ServiceDataSourceResponse.class);
 
                 if(serviceDataSourceResponse == null || serviceDataSourceResponse.getData() == null || serviceDataSourceResponse.getData().isEmpty()) {
-                    MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.HTTP, metricId);
+                    MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.HTTP, upstreamId);
                     log.warn("Received empty services list from http. Response body: {}", response.body());
                 }
 
@@ -188,7 +188,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
         } catch (HttpCommunicationException httpCommunicationException){
             throw httpCommunicationException;
         } catch (Exception e) {
-            MetricRecorder.recordServicesParseFailure(DataStoreType.HTTP, metricId);
+            MetricRecorder.recordServicesParseFailure(DataStoreType.HTTP, upstreamId);
             throw new HttpCommunicationException(
                     "Error reading data from server. Url: " + httpUrl + "Error: " + e.getMessage());
         }
@@ -202,8 +202,8 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
         try (val body = response.body()) {
             if (null == body) {
                 log.warn("HTTP call to {} returned empty body", httpUrl);
-                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId);
-                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId, service.getServiceName());
+                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, upstreamId);
+                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, upstreamId, service.getServiceName());
                 throw new HttpCommunicationException("Empty response received for call to " + httpUrl);
             }
             else {
@@ -211,8 +211,8 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                 val serviceNodesResponse = deserializer.deserialize(bytes);
 
                 if(serviceNodesResponse == null || serviceNodesResponse.getData() == null || serviceNodesResponse.getData().isEmpty()) {
-                    MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId);
-                    MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId, service.getServiceName());
+                    MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, upstreamId);
+                    MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, upstreamId, service.getServiceName());
                 }
 
                 if (serviceNodesResponse.valid()) {
@@ -226,8 +226,8 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
         } catch (HttpCommunicationException httpCommunicationException){
             throw httpCommunicationException;
         } catch (Exception e) {
-            MetricRecorder.recordListNodesParseFailure(DataStoreType.HTTP, metricId);
-            MetricRecorder.recordListNodesParseFailure(DataStoreType.HTTP, metricId, service.getServiceName());
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.HTTP, upstreamId);
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.HTTP, upstreamId, service.getServiceName());
             throw new HttpCommunicationException(
                     "Error parsing node data from server. Url: " + httpUrl + "Error: " + e.getMessage());
         }

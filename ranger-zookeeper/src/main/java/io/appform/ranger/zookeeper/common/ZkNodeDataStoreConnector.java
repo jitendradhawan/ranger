@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
 
-    protected final String metricId;
+    protected final String upstreamId;
     @Getter(AccessLevel.PROTECTED)
     protected final Service service;
     @Getter(AccessLevel.PROTECTED)
@@ -64,10 +64,10 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
             .build();
 
     protected ZkNodeDataStoreConnector(
-            String metricId, final Service service,
+            String upstreamId, final Service service,
             final CuratorFramework curatorFramework,
             final ZkStoreType storeType) {
-        this.metricId = metricId;
+        this.upstreamId = upstreamId;
         this.service = service;
         this.curatorFramework = curatorFramework;
         this.storeType = storeType;
@@ -168,7 +168,7 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
     public boolean isActive() {
         var zkConnectionActive = curatorFramework != null && curatorFramework.getZookeeperClient() != null
                 && curatorFramework.getZookeeperClient().isConnected();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.ZK, metricId, zkConnectionActive);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.ZK, upstreamId, zkConnectionActive);
         return zkConnectionActive;
     }
 

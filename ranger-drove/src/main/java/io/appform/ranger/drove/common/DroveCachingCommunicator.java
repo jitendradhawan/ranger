@@ -51,7 +51,7 @@ import java.util.*;
 @Slf4j
 public class DroveCachingCommunicator implements DroveCommunicator {
 
-    private final String metricId;
+    private final String upstreamId;
     private final DroveCommunicator root;
     private final DroveRemoteEventListener listener;
     //Zombie check is 60 secs .. so this provides about 10 secs
@@ -64,7 +64,7 @@ public class DroveCachingCommunicator implements DroveCommunicator {
             DroveUpstreamConfig config,
             DroveClient droveClient,
             ObjectMapper mapper) {
-        this.metricId = config.getId();
+        this.upstreamId = config.getId();
         this.root = root;
         val offsetStore = new DroveEventPollingOffsetInMemoryStore();
         offsetStore.setLastOffset(System.currentTimeMillis()); //Only interested in new events
@@ -142,7 +142,7 @@ public class DroveCachingCommunicator implements DroveCommunicator {
                         val appName = appStateChanged.getMetadata().get(AppEventDataTag.APP_NAME);
                         log.info("Received app state change event for app: {}", appName);
                         val service = new Service(namespace, appName.toString());
-                        MetricRecorder.recordCacheUpdateOnDroveEvent(DataStoreType.DROVE, metricId, appStateChanged.getType().name(), service.getServiceName());
+                        MetricRecorder.recordCacheUpdateOnDroveEvent(DataStoreType.DROVE, upstreamId, appStateChanged.getType().name(), service.getServiceName());
                         return service;
                     }
 
@@ -151,7 +151,7 @@ public class DroveCachingCommunicator implements DroveCommunicator {
                         val appName = instanceStateChanged.getMetadata().get(AppInstanceEventDataTag.APP_NAME);
                         log.info("Received instance state change event for app: {}", appName);
                         val service = new Service(namespace, appName.toString());
-                        MetricRecorder.recordCacheUpdateOnDroveEvent(DataStoreType.DROVE, metricId, instanceStateChanged.getType().name(), service.getServiceName());
+                        MetricRecorder.recordCacheUpdateOnDroveEvent(DataStoreType.DROVE, upstreamId, instanceStateChanged.getType().name(), service.getServiceName());
                         return service;
                     }
                 }))

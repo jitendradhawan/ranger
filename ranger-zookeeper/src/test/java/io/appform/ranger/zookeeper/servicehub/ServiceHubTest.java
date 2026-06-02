@@ -93,7 +93,7 @@ class ServiceHubTest {
         final HealthUpdateHandler<TestNodeData> healthUpdateHandler = new LastUpdatedHandler<TestNodeData>()
                 .setNext(new HealthStatusHandler<>());
         val provider1 = ServiceProviderBuilders.<TestNodeData>shardedServiceProviderBuilder()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withHostname("localhost")
                 .withPort(1080)
                 .withNamespace(NAMESPACE)
@@ -115,7 +115,7 @@ class ServiceHubTest {
             .withRefreshFrequencyMs(1000)
             .withServiceDataSource(new ZkServiceDataSource(null, "test", testingCluster.getConnectString(), curatorFramework))
             .withServiceFinderFactory(ZkShardedServiceFinderFactory.<TestNodeData>builder()
-                .metricId("test-metric")
+                .upstreamId("test-metric")
                 .curatorFramework(curatorFramework)
                 .deserializer(this::read)
                 .build())

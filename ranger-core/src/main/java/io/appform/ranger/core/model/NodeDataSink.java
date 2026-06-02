@@ -22,7 +22,7 @@ public interface NodeDataSink<T, S extends Serializer<T>> extends NodeDataStoreC
 
     DataStoreType getDataStoreType();
 
-    String getMetricId();
+    String getUpstreamId();
     
     void updateState(S serializer, ServiceNode<T> serviceNode);
 }

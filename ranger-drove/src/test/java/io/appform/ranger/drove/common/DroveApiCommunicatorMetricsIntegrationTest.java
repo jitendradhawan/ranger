@@ -355,11 +355,11 @@ class DroveApiCommunicatorMetricsIntegrationTest {
 
     // ==================== Helper ====================
 
-    private DroveCommunicator buildClient(WireMockRuntimeInfo wm, String metricId) {
+    private DroveCommunicator buildClient(WireMockRuntimeInfo wm, String upstreamId) {
         return RangerDroveUtils.buildDroveClient(
                 "testns",
                 DroveUpstreamConfig.builder()
-                        .id(metricId)
+                        .id(upstreamId)
                         .endpoints(List.of("http://localhost:" + wm.getHttpPort()))
                         .username("guest")
                         .password("guest")

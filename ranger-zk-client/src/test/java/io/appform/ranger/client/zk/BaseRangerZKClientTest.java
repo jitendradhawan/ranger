@@ -110,7 +110,7 @@ public abstract class BaseRangerZKClientTest {
         final HealthUpdateHandler<TestNodeData> healthUpdateHandler = new LastUpdatedHandler<TestNodeData>()
                 .setNext(new HealthStatusHandler<TestNodeData>());
         provider = ServiceProviderBuilders.<TestNodeData>shardedServiceProviderBuilder()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withHostname("localhost")
                 .withPort(1080)
                 .withNamespace("test-n")

@@ -61,7 +61,7 @@ public class ZkServiceProviderBuilder<T> extends BaseServiceProviderBuilder<T, Z
     }
 
     @Override
-    protected NodeDataSink<T, ZkNodeDataSerializer<T>> dataSink(String metricId, Service service) {
-        return new ZkNodeDataSink<>(metricId, service, curatorFramework);
+    protected NodeDataSink<T, ZkNodeDataSerializer<T>> dataSink(String upstreamId, Service service) {
+        return new ZkNodeDataSink<>(upstreamId, service, curatorFramework);
     }
 }

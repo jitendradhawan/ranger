@@ -38,7 +38,7 @@ public class ZkShardedServiceFinderFactory<T> implements ServiceFinderFactory<T,
     private final ZkNodeDataDeserializer<T> deserializer;
     private final ShardSelector<T, MapBasedServiceRegistry<T>> shardSelector;
     private final ServiceNodeSelector<T> nodeSelector;
-    private final String metricId;
+    private final String upstreamId;
 
     @Builder
     public ZkShardedServiceFinderFactory(
@@ -49,7 +49,7 @@ public class ZkShardedServiceFinderFactory<T> implements ServiceFinderFactory<T,
             ZkNodeDataDeserializer<T> deserializer,
             ShardSelector<T, MapBasedServiceRegistry<T>> shardSelector,
             ServiceNodeSelector<T> nodeSelector,
-            String metricId) {
+            String upstreamId) {
         this.curatorFramework = curatorFramework;
         this.connectionString = connectionString;
         this.nodeRefreshIntervalMs = nodeRefreshIntervalMs;
@@ -57,13 +57,13 @@ public class ZkShardedServiceFinderFactory<T> implements ServiceFinderFactory<T,
         this.deserializer = deserializer;
         this.shardSelector = shardSelector;
         this.nodeSelector = nodeSelector;
-        this.metricId = metricId;
+        this.upstreamId = upstreamId;
     }
 
     @Override
     public SimpleShardedServiceFinder<T> buildFinder(Service service) {
         val finder = new ZkSimpleShardedServiceFinderBuilder<T>()
-                .withMetricId(metricId)
+                .withUpstreamId(upstreamId)
                 .withDeserializer(deserializer)
                 .withNamespace(service.getNamespace())
                 .withServiceName(service.getServiceName())

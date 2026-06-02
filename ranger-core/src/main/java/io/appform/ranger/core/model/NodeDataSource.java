@@ -26,7 +26,7 @@ import java.util.Optional;
 @SuppressWarnings("unused")
 public interface NodeDataSource<T, D extends Deserializer<T>> extends NodeDataStoreConnector<T> {
 
-    String getMetricId();
+    String getUpstreamId();
 
     DataStoreType getDataStoreType();
 

@@ -30,6 +30,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.appform.ranger.core.util.MetricRecorder.*;
@@ -41,17 +43,17 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ZkServiceDataSource implements ServiceDataSource {
 
-    private final String metricId;
+    private final String upstreamId;
     private final String namespace;
     private final String connectionString;
     private CuratorFramework curatorFramework;
     private boolean curatorProvided;
 
-    public ZkServiceDataSource(String metricId,
+    public ZkServiceDataSource(String upstreamId,
                                String namespace,
                                String connectionString,
                                CuratorFramework curatorFramework){
-        this.metricId = metricId;
+        this.upstreamId = upstreamId;
         this.namespace = namespace;
         this.connectionString = connectionString;
         this.curatorFramework = curatorFramework;
@@ -63,23 +65,26 @@ public class ZkServiceDataSource implements ServiceDataSource {
         try {
             val children = curatorFramework.getChildren()
                     .forPath(PathBuilder.REGISTERED_SERVICES_PATH);
-
-            if(children == null || children.isEmpty()) {
-                MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.ZK, metricId);
-                log.warn("No services found for namespace: {} in zk data source with metric id: {}", namespace, metricId);
-            }
-            val result = null == children
-                    ? Collections.<Service>emptySet()
-                    : children.stream()
-                            .map(child -> Service.builder().namespace(namespace).serviceName(child).build())
-                            .collect(Collectors.toSet());
-            MetricRecorder.recordServicesFetchStatus(DataStoreType.ZK, metricId, SUCCESS);
+            val result = getServices(children);
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.ZK, upstreamId, SUCCESS);
             return result;
         }
         catch (Exception e) {
-            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, metricId, SERVICES_LIST, e.getClass().getSimpleName());
-            MetricRecorder.recordServicesFetchStatus(DataStoreType.ZK, metricId, FAILURE);
+            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, upstreamId, SERVICES_LIST, e.getClass().getSimpleName());
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.ZK, upstreamId, FAILURE);
             throw e;
+        }
+    }
+
+    private Set<Service> getServices(List<String> children) {
+        if(children == null || children.isEmpty()) {
+            MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.ZK, upstreamId);
+            log.warn("No services found for namespace: {} in zk data source with metric id: {}", namespace, upstreamId);
+            return Collections.<Service>emptySet();
+        } else {
+            return children.stream()
+                    .map(child -> Service.builder().namespace(namespace).serviceName(child).build())
+                    .collect(Collectors.toSet());
         }
     }
 

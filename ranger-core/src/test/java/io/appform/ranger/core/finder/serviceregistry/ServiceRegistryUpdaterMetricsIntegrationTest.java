@@ -22,20 +22,15 @@ import io.appform.ranger.core.signals.Signal;
 import io.appform.ranger.core.units.TestNodeData;
 import io.appform.ranger.core.util.MetricRecorder;
 import lombok.val;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
@@ -81,13 +76,17 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
 
         // Wait for initial update and a brief period for metric recording to complete
         awaitRefresh(registry);
-        sleep(100); // Allow time for MetricRecorder call after updateNodes
 
-        // Verify success timer
+        // Wait for success timer to be recorded using Awaitility
         val timerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.success";
-        val timer = metricRegistry.getTimers().get(timerName);
-        assertNotNull(timer, "Node data refresh success timer should exist");
-        assertTrue(timer.getCount() >= 1, "Timer should have at least 1 update");
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val timer = metricRegistry.getTimers().get(timerName);
+                    assertNotNull(timer, "Node data refresh success timer should exist");
+                    assertTrue(timer.getCount() >= 1, "Timer should have at least 1 update");
+                });
 
         // No failure timer
         val failureTimerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.failure";
@@ -110,14 +109,16 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
             // Expected: initial update fails
         }
 
-        // Give some time for the updater thread to process
-        sleep(200);
-
-        // Verify failure timer
+        // Wait for failure timer to be recorded using Awaitility
         val failureTimerName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID + ".nodeDataRefresh.failure";
-        val failureTimer = metricRegistry.getTimers().get(failureTimerName);
-        assertNotNull(failureTimer, "Node data refresh failure timer should exist");
-        assertTrue(failureTimer.getCount() >= 1, "Failure timer should have at least 1 update");
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val failureTimer = metricRegistry.getTimers().get(failureTimerName);
+                    assertNotNull(failureTimer, "Node data refresh failure timer should exist");
+                    assertTrue(failureTimer.getCount() >= 1, "Failure timer should have at least 1 update");
+                });
     }
 
     @Test
@@ -143,13 +144,17 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         // Now deactivate the data source and trigger another update
         dataSource.setActive(false);
         signal.fire();
-        sleep(200);
 
-        // Verify stale data retained meter
+        // Wait for stale data retained meter to be recorded using Awaitility
         val meterName = "io.appform.ranger.dataStoreType.DROVE.dataSource." + METRIC_ID + ".staleDataRetained";
-        val meter = metricRegistry.getMeters().get(meterName);
-        assertNotNull(meter, "Stale data retained meter should exist");
-        assertTrue(meter.getCount() >= 1, "Stale data retained should be recorded at least once");
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val meter = metricRegistry.getMeters().get(meterName);
+                    assertNotNull(meter, "Stale data retained meter should exist");
+                    assertTrue(meter.getCount() >= 1, "Stale data retained should be recorded at least once");
+                });
     }
 
     @Test
@@ -231,21 +236,32 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         updater.start();
         awaitRefresh(registry);
 
-        // Now set to null and trigger update
-        dataSource.setNodeList(null);
-        signal.fire();
-        sleep(200);
-
-        // When refresh returns null, no success timer should be incremented for that second call
-        // The success timer from the first call should be 1
+        // Get the initial count after first successful refresh
         val timerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.success";
+
+        // Wait for the first success timer to be recorded
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    val timer = metricRegistry.getTimers().get(timerName);
+                    assertNotNull(timer, "Success timer should exist after first refresh");
+                    assertTrue(timer.getCount() >= 1, "Should have at least one success");
+                });
+
         val beforeTimer = metricRegistry.getTimers().get(timerName);
-        final long beforeCount = beforeTimer == null ? 0L : beforeTimer.getCount();
+        final long beforeCount = beforeTimer.getCount();
 
         // Now set to null and trigger update
         dataSource.setNodeList(null);
         signal.fire();
-        sleep(200);
+
+        // Wait a bit to ensure the signal processing would have completed
+        // Use a shorter wait since we're just ensuring the async operation completes
+        await()
+                .atMost(Duration.ofSeconds(2))
+                .pollDelay(Duration.ofMillis(100))
+                .until(() -> true);
 
         val afterTimer = metricRegistry.getTimers().get(timerName);
         final long afterCount = afterTimer == null ? 0L : afterTimer.getCount();
@@ -257,15 +273,10 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
     // ==================== Test helpers ====================
 
     private void awaitRefresh(ServiceRegistry<?> registry) {
-        val start = System.currentTimeMillis();
-        while (!registry.isRefreshed() && (System.currentTimeMillis() - start) < 5000) {
-            sleep(50);
-        }
-        assertTrue(registry.isRefreshed(), "Registry should be refreshed within timeout");
-    }
-
-    private void sleep(long ms) {
-        await().pollDelay(Duration.ofMillis(ms)).until(() -> true);
+        await()
+                .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> assertTrue(registry.isRefreshed(), "Registry should be refreshed"));
     }
 
     // ==================== Test implementations ====================
@@ -274,15 +285,15 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
     }
 
     static class TestNodeDataSource implements NodeDataSource<TestNodeData, TestDeserializer> {
-        private final String metricId;
+        private final String upstreamId;
         private final DataStoreType dataStoreType;
         private final AtomicBoolean active;
         private volatile List<ServiceNode<TestNodeData>> nodeList;
         private final boolean throwOnRefresh;
 
-        TestNodeDataSource(String metricId, DataStoreType dataStoreType, boolean active,
+        TestNodeDataSource(String upstreamId, DataStoreType dataStoreType, boolean active,
                            List<ServiceNode<TestNodeData>> nodeList, boolean throwOnRefresh) {
-            this.metricId = metricId;
+            this.upstreamId = upstreamId;
             this.dataStoreType = dataStoreType;
             this.active = new AtomicBoolean(active);
             this.nodeList = nodeList;
@@ -298,8 +309,8 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         }
 
         @Override
-        public String getMetricId() {
-            return metricId;
+        public String getUpstreamId() {
+            return upstreamId;
         }
 
         @Override

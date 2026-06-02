@@ -64,7 +64,7 @@ class ServiceProviderTest {
         }
 
         @Override
-        public String getMetricId() {
+        public String getUpstreamId() {
             return "test-metric";
         }
 
@@ -103,7 +103,7 @@ class ServiceProviderTest {
         }
 
         @Override
-        protected NodeDataSink<T, TestSerializer<T>> dataSink(String metricId, Service service) {
+        protected NodeDataSink<T, TestSerializer<T>> dataSink(String upstreamId, Service service) {
             return new TestNodeDataSink<>();
         }
     }
@@ -123,7 +123,7 @@ class ServiceProviderTest {
         final HealthUpdateHandler<TestNodeData> healthUpdateHandler = new LastUpdatedHandler<TestNodeData>()
                 .setNext(new HealthStatusHandler<TestNodeData>());
         Assertions.assertThrowsExactly(IllegalArgumentException.class, () ->  new TestServiceProviderBuilder<>()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withServiceName("test-service")
                 .withNamespace("test")
                 .withHostname("localhost-1")
@@ -150,7 +150,7 @@ class ServiceProviderTest {
         final HealthUpdateHandler<TestNodeData> healthUpdateHandler = new LastUpdatedHandler<TestNodeData>()
                 .setNext(new HealthStatusHandler<TestNodeData>());
         val testProvider = new TestServiceProviderBuilder<>()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withServiceName("test-service")
                 .withNamespace("test")
                 .withHostname("localhost-1")

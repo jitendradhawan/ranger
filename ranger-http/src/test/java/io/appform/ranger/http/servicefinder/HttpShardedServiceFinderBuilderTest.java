@@ -88,7 +88,7 @@ class HttpShardedServiceFinderBuilderTest {
                 })
                 .withShardSelector((criteria, registry) -> registry.nodeList())
                 .withNodeRefreshIntervalMs(1000)
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .build();
         finder.start();
         RangerTestUtils.sleepUntilFinderStarts(finder);

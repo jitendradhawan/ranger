@@ -54,11 +54,11 @@ public class DroveServiceDataSource<T> extends DroveNodeDataStoreConnector<T> im
                     .stream()
                     .map(serviceName -> new Service(namespace, serviceName))
                     .toList();
-            MetricRecorder.recordServicesFetchStatus(DataStoreType.DROVE, metricId, SUCCESS);
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.DROVE, upstreamId, SUCCESS);
             return result;
         } catch (Exception e) {
-            log.error("Error fetching services from drove data source id: {}, namespace: {}", metricId, namespace, e);
-            MetricRecorder.recordServicesFetchStatus(DataStoreType.DROVE, metricId, FAILURE);
+            log.error("Error fetching services from drove data source id: {}, namespace: {}", upstreamId, namespace, e);
+            MetricRecorder.recordServicesFetchStatus(DataStoreType.DROVE, upstreamId, FAILURE);
             throw e;
         }
     }

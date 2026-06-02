@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import io.appform.ranger.client.RangerClient;
 import io.appform.ranger.client.zk.SimpleRangerZKClient;
 import io.appform.ranger.common.server.ShardInfo;
@@ -259,7 +258,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                                                                              ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector,
                                                                                              final ServiceNodeSelector<ShardInfo> nodeSelector) {
         return SimpleRangerZKClient.<ShardInfo>builder()
-                .metricId(DEFAULT_DATA_SINK_ID)
+                .upstreamId(DEFAULT_DATA_SINK_ID)
                 .curatorFramework(curator)
                 .namespace(namespace)
                 .serviceName(serviceName)
@@ -305,7 +304,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .setNext(new RoutingWeightHandler<>(getWeightSupplier().get()))
                 .setNext(new StartupTimeHandler<>());
         val serviceProviderBuilder = ServiceProviderBuilders.<ShardInfo>shardedServiceProviderBuilder()
-                .withMetricId(DEFAULT_DATA_SINK_ID)
+                .withUpstreamId(DEFAULT_DATA_SINK_ID)
                 .withCuratorFramework(curator)
                 .withNamespace(namespace)
                 .withServiceName(serviceName)

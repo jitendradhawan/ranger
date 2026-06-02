@@ -151,7 +151,7 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
                     //Remove all stale nodes before updating. This is done centrally to ensure some data sources
                     //don't skip this check. Some control is still provided so that they can overload.
                     serviceRegistry.updateNodes(FinderUtils.filterValidNodes(serviceRegistry.getService(), nodeList, livenessCheckMaxAge));
-                    MetricRecorder.recordNodeDataRefreshSuccess(nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId(),
+                    MetricRecorder.recordNodeDataRefreshSuccess(nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId(),
                             stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 }
                 else {
@@ -165,7 +165,7 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
                           e.getMessage());
                 callFailed = true;
                 MetricRecorder.recordNodeDataRefreshFailure(serviceRegistry.getService().getServiceName(),
-                        nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId(),
+                        nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId(),
                         stopwatch.elapsed(TimeUnit.MILLISECONDS));
             } finally {
                 stopwatch.stop();
@@ -182,7 +182,7 @@ public class ServiceRegistryUpdater<T, D extends Deserializer<T>> {
                                                 .map(node -> node.setLastUpdatedTimeStamp(currTime))
                                                 .toList());
             MetricRecorder.recordStaleDataRetained(serviceRegistry.getService().getServiceName(),
-                    nodeDataSource.getDataStoreType(), nodeDataSource.getMetricId());
+                    nodeDataSource.getDataStoreType(), nodeDataSource.getUpstreamId());
         }
     }
 

@@ -35,14 +35,14 @@ public class TestSimpleUnshardedServiceFinder <T>
     }
 
     @Override
-    protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(String metricId, Service service) {
+    protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(String upstreamId, Service service) {
         return new TestDataSource();
     }
 
     static class TestDataSource implements NodeDataSource<TestNodeData, Deserializer<TestNodeData>>{
 
         @Override
-        public String getMetricId() {
+        public String getUpstreamId() {
             return "testDataSource";
         }
 

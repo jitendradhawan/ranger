@@ -29,7 +29,7 @@ class HealthCheckerMetricsIntegrationTest {
 
     private MetricRegistry metricRegistry;
 
-    // Metric keys produced by MetricRecorder (no DataStoreType/metricId context):
+    // Metric keys produced by MetricRecorder (no DataStoreType/upstreamId context):
     //   recordHealthcheckStatus  -> io.appform.ranger.healthChecker.status.<healthy|unhealthy>
     //   recordHealthcheckFailure -> io.appform.ranger.healthChecker.failure
     private static final String HC_PREFIX       = "io.appform.ranger.healthChecker";

@@ -75,7 +75,7 @@ class SimpleServiceProviderTest {
     @Test
     void testBasicDiscovery() {
         val serviceFinder = ServiceFinderBuilders.<UnshardedInfo>unshardedFinderBuilder()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")
@@ -111,7 +111,7 @@ class SimpleServiceProviderTest {
         final HealthUpdateHandler<UnshardedInfo> healthUpdateHandler = new LastUpdatedHandler<UnshardedInfo>()
                 .setNext(new HealthStatusHandler<UnshardedInfo>());
         val serviceProvider = ServiceProviderBuilders.<UnshardedInfo>unshardedServiceProviderBuilder()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")

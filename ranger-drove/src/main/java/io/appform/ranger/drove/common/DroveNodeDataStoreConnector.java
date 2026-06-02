@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DroveNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
 
-    protected final String metricId;
+    protected final String upstreamId;
     protected final DroveUpstreamConfig config;
     protected final ObjectMapper mapper;
     protected final DroveCommunicator droveClient;
@@ -38,7 +38,7 @@ public class DroveNodeDataStoreConnector<T> implements NodeDataStoreConnector<T>
             final DroveUpstreamConfig config,
             final ObjectMapper mapper,
             final DroveCommunicator droveClient) {
-        this.metricId = config.getId();
+        this.upstreamId = config.getId();
         this.config = config;
         this.mapper = mapper;
         this.droveClient = droveClient;
@@ -66,7 +66,7 @@ public class DroveNodeDataStoreConnector<T> implements NodeDataStoreConnector<T>
     @Override
     public boolean isActive() {
         var healthy = droveClient.healthy();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.DROVE, metricId, healthy);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
         return healthy;
     }
 

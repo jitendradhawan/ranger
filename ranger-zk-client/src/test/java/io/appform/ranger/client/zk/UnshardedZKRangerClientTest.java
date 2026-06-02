@@ -35,7 +35,7 @@ class UnshardedZKRangerClientTest extends BaseRangerZKClientTest {
                 .mapper(getObjectMapper())
                 .deserializer(this::read)
                 .nodeRefreshTimeMs(1000)
-                .metricId("test-metric")
+                .upstreamId("test-metric")
                 .build();
         zkHubClient.start();
         val service = RangerTestUtils.getService("test-n", "s1");

@@ -51,7 +51,7 @@ import static io.appform.ranger.core.util.MetricRecorder.SERVICES_LIST;
  */
 @Slf4j
 public class DroveApiCommunicator implements DroveCommunicator {
-    private final String metricId;
+    private final String upstreamId;
     private final String namespace;
     private final DroveUpstreamConfig config;
     private final DroveClient droveClient;
@@ -67,7 +67,7 @@ public class DroveApiCommunicator implements DroveCommunicator {
         this.config = config;
         this.droveClient = droveClient;
         this.mapper = mapper;
-        this.metricId = config.getId();
+        this.upstreamId = config.getId();
         resetter.scheduleWithFixedDelay(() -> upstreamAvailable.set(true), 0, 60, TimeUnit.SECONDS);
     }
 
@@ -103,7 +103,7 @@ public class DroveApiCommunicator implements DroveCommunicator {
 
                     @Override
                     public List<String> handle(DroveClient.Response response) throws Exception {
-                        MetricRecorder.recordRemoteCallStatusCode(DataStoreType.DROVE, metricId, SERVICES_LIST, response.statusCode());
+                        MetricRecorder.recordRemoteCallStatusCode(DataStoreType.DROVE, upstreamId, SERVICES_LIST, response.statusCode());
                         if (response.statusCode() != HttpStatus.SC_OK) {
                             throw new DroveCommunicationException("Error communicating to drove: " + response);
                         }
@@ -136,13 +136,13 @@ public class DroveApiCommunicator implements DroveCommunicator {
                     });
 
             if(apiResponse == null || apiResponse.getData() == null || apiResponse.getData().isEmpty()) {
-                MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.DROVE, metricId);
+                MetricRecorder.recordNullOrEmptyServicesListResponse(DataStoreType.DROVE, upstreamId);
                 log.warn("Received empty services list from drove. Response body: {}", response.body());
             }
 
             return apiResponse;
         } catch (JsonProcessingException e) {
-            MetricRecorder.recordServicesParseFailure(DataStoreType.DROVE, metricId);
+            MetricRecorder.recordServicesParseFailure(DataStoreType.DROVE, upstreamId);
             log.error("Error parsing response from drove: {}. Response body: {}", e.getMessage(), response.body(), e);
             throw new DroveCommunicationException("Error parsing response from drove: " + e.getMessage());
         }
@@ -169,7 +169,7 @@ public class DroveApiCommunicator implements DroveCommunicator {
 
                                        @Override
                                        public Map<Service, List<ExposedAppInfo>> handle(DroveClient.Response response) {
-                                           MetricRecorder.recordRemoteCallStatusCode(DataStoreType.DROVE, metricId, LIST_NODES, response.statusCode());
+                                           MetricRecorder.recordRemoteCallStatusCode(DataStoreType.DROVE, upstreamId, LIST_NODES, response.statusCode());
                                            if (response.statusCode() != HttpStatus.SC_OK) {
                                                throwDroveCommError(response);
                                            }
@@ -195,15 +195,15 @@ public class DroveApiCommunicator implements DroveCommunicator {
                     });
 
             if(apiResponse == null || apiResponse.getData() == null || apiResponse.getData().isEmpty()) {
-                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.DROVE, metricId);
-                services.forEach(service -> MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.DROVE, metricId, service.getServiceName()));
+                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.DROVE, upstreamId);
+                services.forEach(service -> MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.DROVE, upstreamId, service.getServiceName()));
                 log.warn("Received empty node list from drove. Response body: {}", response.body());
             }
 
             return apiResponse;
         } catch (JsonProcessingException e) {
-            MetricRecorder.recordListNodesParseFailure(DataStoreType.DROVE, metricId);
-            services.forEach(service -> MetricRecorder.recordListNodesParseFailure(DataStoreType.DROVE, metricId, service.getServiceName()));
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.DROVE, upstreamId);
+            services.forEach(service -> MetricRecorder.recordListNodesParseFailure(DataStoreType.DROVE, upstreamId, service.getServiceName()));
             log.error("Error parsing response from drove: {}. Response body: {}", e.getMessage(), response.body(), e);
             throw new DroveCommunicationException("Error parsing response from drove: " + e.getMessage());
         }

@@ -45,13 +45,13 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends HttpNodeDataStoreConnector<T> implements NodeDataSink<T, S> {
 
-    private final String metricId;
+    private final String upstreamId;
     private final Service service;
     private final ObjectMapper mapper;
 
-    public HttpNodeDataSink(String metricId, Service service, HttpClientConfig config, ObjectMapper mapper, HttpCommunicator<T> httpClient) {
+    public HttpNodeDataSink(String upstreamId, Service service, HttpClientConfig config, ObjectMapper mapper, HttpCommunicator<T> httpClient) {
         super(config, httpClient);
-        this.metricId = metricId;
+        this.upstreamId = upstreamId;
         this.service = service;
         this.mapper = mapper;
     }
@@ -62,8 +62,8 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
     }
 
     @Override
-    public String getMetricId() {
-        return metricId;
+    public String getUpstreamId() {
+        return upstreamId;
     }
 
     @Override
@@ -89,18 +89,22 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
         val serviceRegistrationResponse = registerService(service.getServiceName(), httpUrl, requestBody).orElse(null);
         if(null == serviceRegistrationResponse || !serviceRegistrationResponse.valid()){
             log.warn("Http call to {} returned a failure response {}", httpUrl, serviceRegistrationResponse);
-            MetricRecorder.recordNullOrEmptyRegisterServiceResponse(DataStoreType.HTTP, metricId, service.getServiceName());
-            MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.HTTP, metricId, FAILURE);
+            recordNullOrEmptyRegisterServiceResponse();
             Exceptions.illegalState("Error updating state on the server for node data: " + httpUrl);
         }
-        MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.HTTP, metricId, SUCCESS);
+        MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.HTTP, upstreamId, SUCCESS);
+    }
+
+    private void recordNullOrEmptyRegisterServiceResponse() {
+        MetricRecorder.recordNullOrEmptyRegisterServiceResponse(DataStoreType.HTTP, upstreamId, service.getServiceName());
+        MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.HTTP, upstreamId, FAILURE);
     }
 
     private <T, S extends HttpRequestDataSerializer<T>> byte[] getSerializedData(String serviceName, S serializer, ServiceNode<T> serviceNode) {
         try {
             return serializer.serialize(serviceNode);
         } catch (Exception e) {
-            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.HTTP, metricId, MetricRecorder.SERIALIZATION, serviceName, e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.HTTP, upstreamId, MetricRecorder.SERIALIZATION, serviceName, e.getClass().getSimpleName());
             log.error("Error serializing data for service {} with node {} with exception", serviceName, serviceNode, e);
             throw e;
         }
@@ -112,7 +116,7 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
                 .post(requestBody)
                 .build();
         try (val response = httpCommunicator.getHttpClient().newCall(request).execute()) {
-            MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, metricId, REGISTER_SERVICE, response.code());
+            MetricRecorder.recordRemoteCallStatusCode(DataStoreType.HTTP, upstreamId, REGISTER_SERVICE, response.code());
             if (response.isSuccessful()) {
                 try (val body = response.body()) {
                     if (null == body) {
@@ -128,7 +132,7 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
             }
         }
         catch (IOException e) {
-            MetricRecorder.recordNodeDataSinkUnknownFailure(DataStoreType.HTTP, metricId, serviceName, e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkUnknownFailure(DataStoreType.HTTP, upstreamId, serviceName, e.getClass().getSimpleName());
             log.error("Error updating state on the server with httpUrl {} with exception {} ",  httpUrl, e);
         }
         return Optional.empty();
@@ -141,7 +145,7 @@ public class HttpNodeDataSink<T, S extends HttpRequestDataSerializer<T>> extends
                     });
         }
         catch (IOException e) {
-            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.HTTP, metricId, DESERIALIZATION, serviceName, e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.HTTP, upstreamId, DESERIALIZATION, serviceName, e.getClass().getSimpleName());
             throw e;
         }
     }

@@ -42,9 +42,9 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNodeDataStoreConnector<T> implements NodeDataSink<T,S> {
     public ZkNodeDataSink(
-            String metricId, Service service,
+            String upstreamId, Service service,
             CuratorFramework curatorFramework) {
-        super(metricId, service, curatorFramework, ZkStoreType.SINK);
+        super(upstreamId, service, curatorFramework, ZkStoreType.SINK);
     }
 
     @Override
@@ -53,8 +53,8 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
     }
 
     @Override
-    public String getMetricId() {
-        return metricId;
+    public String getUpstreamId() {
+        return upstreamId;
     }
 
     @Override
@@ -75,11 +75,11 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
                 val serviceData = getSerializedData(service.getServiceName(), serializer, serviceNode);
                 curatorFramework.setData().forPath(path, serviceData);
             }
-            MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.ZK, metricId, SUCCESS);
+            MetricRecorder.recordNodeDataSinkUpdateStatus(getDataStoreType(), upstreamId, SUCCESS);
         }
         catch (Exception e) {
             log.error("Error updating node data at path " + path, e);
-            MetricRecorder.recordNodeDataSinkUpdateStatus(DataStoreType.ZK, metricId, FAILURE);
+            MetricRecorder.recordNodeDataSinkUpdateStatus(getDataStoreType(), upstreamId, FAILURE);
             Exceptions.illegalState(e);
         }
     }
@@ -88,7 +88,7 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
         try {
             return serializer.serialize(serviceNode);
         } catch (Exception e) {
-            MetricRecorder.recordNodeDataSinkSerDeFailure(DataStoreType.ZK, metricId, MetricRecorder.SERIALIZATION, serviceName, e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkSerDeFailure(getDataStoreType(), upstreamId, MetricRecorder.SERIALIZATION, serviceName, e.getClass().getSimpleName());
             throw e;
         }
     }
@@ -110,7 +110,7 @@ public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNode
             log.warn("Node already exists.. Race condition?", e);
         }
         catch (Exception e) {
-            MetricRecorder.recordNodeDataSinkUnknownFailure(DataStoreType.ZK, metricId, service.getServiceName(), e.getClass().getSimpleName());
+            MetricRecorder.recordNodeDataSinkUnknownFailure(getDataStoreType(), upstreamId, service.getServiceName(), e.getClass().getSimpleName());
             val message = String.format(
                     "Could not create node for %s after 60 retries (1 min). " +
                             "This service will not be discoverable. Retry after some time.", service.getServiceName());

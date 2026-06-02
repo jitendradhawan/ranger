@@ -176,9 +176,9 @@ class DroveServiceDataSourceMetricsIntegrationTest {
 
     // ==================== Helpers ====================
 
-    private DroveUpstreamConfig buildConfig(WireMockRuntimeInfo wm, String metricId) {
+    private DroveUpstreamConfig buildConfig(WireMockRuntimeInfo wm, String upstreamId) {
         return DroveUpstreamConfig.builder()
-                .id(metricId)
+                .id(upstreamId)
                 .endpoints(List.of("http://localhost:" + wm.getHttpPort()))
                 .username("guest")
                 .password("guest")

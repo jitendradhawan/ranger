@@ -40,26 +40,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> extends HttpNodeDataStoreConnector<T> implements NodeDataSource<T, D> {
 
-    private final String metricId;
+    private final String upstreamId;
     private final Service service;
     private final AtomicBoolean upstreamAvailable = new AtomicBoolean(true);
     private final ScheduledExecutorService resetter = Executors.newSingleThreadScheduledExecutor();
 
     public HttpNodeDataSource(
-            final String metricId,
+            final String upstreamId,
             final Service service,
             final HttpClientConfig config,
             final HttpCommunicator<T> httpCommunicator) {
         super(config, httpCommunicator);
         Objects.requireNonNull(config, "client config has not been set for node data");
         Objects.requireNonNull(httpCommunicator, "http communicator has not been set for node data");
-        this.metricId = metricId;
+        this.upstreamId = upstreamId;
         this.service = service;
         resetter.scheduleWithFixedDelay(() -> upstreamAvailable.set(true), 0, 60, TimeUnit.SECONDS);
     }
 
-    public String getMetricId() {
-        return metricId;
+    public String getUpstreamId() {
+        return upstreamId;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> ex
     @Override
     public boolean isActive() {
         var httpUpstreamAvailable = upstreamAvailable.get();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.HTTP, metricId, httpUpstreamAvailable);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.HTTP, upstreamId, httpUpstreamAvailable);
         return httpUpstreamAvailable;
     }
 }

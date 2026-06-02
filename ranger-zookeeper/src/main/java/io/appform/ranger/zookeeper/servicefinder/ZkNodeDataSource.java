@@ -45,14 +45,14 @@ import static java.util.Objects.requireNonNull;
 public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends ZkNodeDataStoreConnector<T> implements NodeDataSource<T, D> {
 
     public ZkNodeDataSource(
-            String metricId, Service service,
+            String upstreamId, Service service,
             CuratorFramework curatorFramework) {
-        super(metricId, service, curatorFramework, ZkStoreType.SOURCE);
+        super(upstreamId, service, curatorFramework, ZkStoreType.SOURCE);
     }
 
     @Override
-    public String getMetricId() {
-        return metricId;
+    public String getUpstreamId() {
+        return upstreamId;
     }
 
     @Override
@@ -90,8 +90,7 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
             List<ServiceNode<T>> nodes = new ArrayList<>(children.size());
             log.debug("Found {} nodes for [{}]", children.size(), serviceName);
             if(children.isEmpty()){
-                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
-                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
+                recordNullOrEmptyResponse(serviceName);
             }
             for (val child : children) {
                 byte[] data = readChild(serviceName, parentPath, child).orElse(null);
@@ -104,15 +103,14 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
             return Optional.of(nodes);
         }
         catch (NoNodeException e) {
-            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
-            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
+            recordNullOrEmptyResponse(serviceName);
             log.error(
                     "No ZK container node found for service: {}. Will return empty list for now. Please doublecheck service name",
                     service.getServiceName());
             return Optional.of(Collections.emptyList());
         }
         catch (Exception e) {
-            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, metricId, LIST_NODES, e.getClass().getSimpleName());
+            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, upstreamId, LIST_NODES, e.getClass().getSimpleName());
             log.error("Error getting node data from zookeeper: ", e);
             throw new ZkCommunicationException("Error getting node data from zookeeper: exception %s , message: %s"
                     .formatted(e.getClass().getSimpleName(), e.getMessage()));
@@ -123,8 +121,8 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
         try {
             return deserializer.deserialize(data);
         } catch (Exception e) {
-            MetricRecorder.recordListNodesParseFailure(DataStoreType.ZK, metricId);
-            MetricRecorder.recordListNodesParseFailure(DataStoreType.ZK, metricId, serviceName);
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.ZK, upstreamId);
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.ZK, upstreamId, serviceName);
             log.error("Error deserializing node data : {} for service name: {} ", new String(data), serviceName, e);
             throw e;
         }
@@ -136,21 +134,24 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
             return Optional.ofNullable(curatorFramework.getData().forPath(path));
         }
         catch (KeeperException.NoNodeException e) {
-            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
-            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
+            recordNullOrEmptyResponse(serviceName);
             log.warn("Node not found for path {}", path);
             return Optional.empty();
         }
         catch (KeeperException e) {
-            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
-            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
+            recordNullOrEmptyResponse(serviceName);
             log.error("Could not get data for node: {}", path, e);
             return Optional.empty();
         } catch (Exception e){
-            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, metricId, LIST_NODES, e.getClass().getSimpleName());
+            MetricRecorder.recordZookeeperReadUnknownFailure(DataStoreType.ZK, upstreamId, LIST_NODES, e.getClass().getSimpleName());
             log.error("Could not read child for node: {}", path, e);
             throw e;
         }
+    }
+
+    private void recordNullOrEmptyResponse(String serviceName) {
+        MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, upstreamId);
+        MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, upstreamId, serviceName);
     }
 
 }

@@ -29,7 +29,6 @@ public class MetricRecorder {
   public static final String LIST_NODES = "listNodes";
   public static final String SUCCESS = "success";
   public static final String FAILURE = "failure";
-  public static final String HEALTHCHECK = "healthcheck";
   public static final String NODE_DATA_SINK = "nodeDataSink";
   public static final String REGISTER_SERVICE = "registerService";
   public static final String SERIALIZATION = "serialization";
@@ -38,7 +37,7 @@ public class MetricRecorder {
   public static final String ZK_READ = "zkRead";
   public static final String HEALTH_CHECKER = "healthChecker";
 
-  private static MetricRegistry metricRegistry = new MetricRegistry();
+  private static MetricRegistry metricRegistry;
 
   public static void initialize(MetricRegistry registry) {
     metricRegistry = registry;
@@ -51,44 +50,44 @@ public class MetricRecorder {
     }
   }
 
-  public static void recordNoteDataSourceStatus(DataStoreType dataStoreType, String metricId, boolean active) {
+  public static void recordNoteDataSourceStatus(DataStoreType dataStoreType, String upstreamId, boolean active) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, active ? ACTIVE : INACTIVE)).mark();
+              DATA_SOURCE, upstreamId, active ? ACTIVE : INACTIVE)).mark();
     }
   }
 
-  public static void recordNodeDataRefreshSuccess(DataStoreType dataStoreType, String metricId, long elapsed) {
+  public static void recordNodeDataRefreshSuccess(DataStoreType dataStoreType, String upstreamId, long elapsed) {
     if (metricRegistry != null) {
       metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_REFRESH, SUCCESS)).update(elapsed, MILLISECONDS);
+              DATA_SOURCE, upstreamId, NODE_DATA_REFRESH, SUCCESS)).update(elapsed, MILLISECONDS);
     }
   }
 
   public static void recordNodeDataRefreshFailure(String serviceName, DataStoreType dataStoreType,
-                                                  String metricId, long elapsed) {
+                                                  String upstreamId, long elapsed) {
     if (metricRegistry != null) {
       metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_REFRESH, FAILURE)).update(elapsed, MILLISECONDS);
+              DATA_SOURCE, upstreamId, NODE_DATA_REFRESH, FAILURE)).update(elapsed, MILLISECONDS);
       metricRegistry.timer(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-                      DATA_SOURCE, metricId, SERVICE_NAME, serviceName, NODE_DATA_REFRESH, FAILURE))
+                      DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, NODE_DATA_REFRESH, FAILURE))
               .update(elapsed, MILLISECONDS);
     }
   }
 
-  public static void recordStaleDataRetained(String serviceName, DataStoreType dataStoreType, String metricId) {
+  public static void recordStaleDataRetained(String serviceName, DataStoreType dataStoreType, String upstreamId) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, STALE_DATA_RETAINED)).mark();
+              DATA_SOURCE, upstreamId, STALE_DATA_RETAINED)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
+              DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
     }
   }
 
-  public static void recordNodeDataSinkUpdateStatus(DataStoreType dataStoreType, String metricId, String status) {
+  public static void recordNodeDataSinkUpdateStatus(DataStoreType dataStoreType, String upstreamId, String status) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, UPDATE, status)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, UPDATE, status)).mark();
     }
   }
 
@@ -104,137 +103,137 @@ public class MetricRecorder {
     }
   }
 
-  public static void recordServicesFetchStatus(DataStoreType dataStoreType, String metricId, String success) {
+  public static void recordServicesFetchStatus(DataStoreType dataStoreType, String upstreamId, String success) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, SERVICES_LIST, "fetch", success)).mark();
+              DATA_SOURCE, upstreamId, SERVICES_LIST, "fetch", success)).mark();
     }
   }
 
-  public static void recordRemoteCallStatusCode(DataStoreType dataStoreType, String metricId,
+  public static void recordRemoteCallStatusCode(DataStoreType dataStoreType, String upstreamId,
                                                 String remoteCall, int statusCode) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, remoteCall, "responseStatus", Integer.toString(statusCode))).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, remoteCall, "responseStatus", Integer.toString(statusCode))).mark();
     }
   }
 
-  public static void recordCacheUpdateOnDroveEvent(DataStoreType dataStoreType, String metricId,
+  public static void recordCacheUpdateOnDroveEvent(DataStoreType dataStoreType, String upstreamId,
                                                    String eventName, String serviceName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, "cacheUpdateOnDroveEvent", eventName, SERVICE_NAME, serviceName)).mark();
+              DATA_SOURCE, upstreamId, "cacheUpdateOnDroveEvent", eventName, SERVICE_NAME, serviceName)).mark();
     }
   }
 
-  public static void recordServicesParseFailure(DataStoreType dataStoreType, String metricId) {
+  public static void recordServicesParseFailure(DataStoreType dataStoreType, String upstreamId) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, SERVICES_LIST, RESPONSE_PARSE_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, SERVICES_LIST, RESPONSE_PARSE_FAILURE)).mark();
     }
   }
 
-  public static void recordListNodesParseFailure(DataStoreType dataStoreType, String metricId) {
+  public static void recordListNodesParseFailure(DataStoreType dataStoreType, String upstreamId) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, LIST_NODES, RESPONSE_PARSE_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, LIST_NODES, RESPONSE_PARSE_FAILURE)).mark();
     }
   }
 
-  public static void recordListNodesParseFailure(DataStoreType dataStoreType, String metricId, String serviceName) {
+  public static void recordListNodesParseFailure(DataStoreType dataStoreType, String upstreamId, String serviceName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, LIST_NODES, SERVICE_NAME, serviceName, RESPONSE_PARSE_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, LIST_NODES, SERVICE_NAME, serviceName, RESPONSE_PARSE_FAILURE)).mark();
     }
   }
 
 
-  public static void recordZookeeperReadUnknownFailure(DataStoreType dataStoreType, String metricId,
+  public static void recordZookeeperReadUnknownFailure(DataStoreType dataStoreType, String upstreamId,
                                                        String operation, String exceptionName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, ZK_READ, operation, UNKNOWN_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, ZK_READ, operation, UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, ZK_READ, operation, UNKNOWN_FAILURE, exceptionName)).mark();
+              DATA_SOURCE, upstreamId, ZK_READ, operation, UNKNOWN_FAILURE, exceptionName)).mark();
     }
   }
 
-  public static void recordRemoteCallUnknownFailure(DataStoreType dataStoreType, String metricId,
+  public static void recordRemoteCallUnknownFailure(DataStoreType dataStoreType, String upstreamId,
                                                     String httpMethodName, String exceptionName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, httpMethodName, UNKNOWN_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, httpMethodName, UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, httpMethodName, UNKNOWN_FAILURE, exceptionName)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, httpMethodName, UNKNOWN_FAILURE, exceptionName)).mark();
     }
   }
 
-  public static void recordRemoteCallUnknownFailure(DataStoreType dataStoreType, String metricId,
+  public static void recordRemoteCallUnknownFailure(DataStoreType dataStoreType, String upstreamId,
                                                     String httpMethodName, String exceptionName, String serviceName) {
-    recordRemoteCallUnknownFailure(dataStoreType, metricId, httpMethodName, exceptionName);
+    recordRemoteCallUnknownFailure(dataStoreType, upstreamId, httpMethodName, exceptionName);
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, httpMethodName, SERVICE_NAME, serviceName,
+              DATA_SOURCE, upstreamId, HTTP_CALL, httpMethodName, SERVICE_NAME, serviceName,
               UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, httpMethodName, SERVICE_NAME, serviceName,
+              DATA_SOURCE, upstreamId, HTTP_CALL, httpMethodName, SERVICE_NAME, serviceName,
               UNKNOWN_FAILURE, exceptionName)).mark();
     }
   }
 
-  public static void recordNullOrEmptyServicesListResponse(DataStoreType dataStoreType, String metricId) {
+  public static void recordNullOrEmptyServicesListResponse(DataStoreType dataStoreType, String upstreamId) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, SERVICES_LIST, NULL_OR_EMPTY_RESPONSE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, SERVICES_LIST, NULL_OR_EMPTY_RESPONSE)).mark();
     }
   }
 
-  public static void recordNullOrEmptyListNodeResponse(DataStoreType dataStoreType, String metricId) {
+  public static void recordNullOrEmptyListNodeResponse(DataStoreType dataStoreType, String upstreamId) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, LIST_NODES, NULL_OR_EMPTY_RESPONSE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, LIST_NODES, NULL_OR_EMPTY_RESPONSE)).mark();
     }
   }
 
-  public static void recordNullOrEmptyListNodeResponse(DataStoreType dataStoreType, String metricId,
+  public static void recordNullOrEmptyListNodeResponse(DataStoreType dataStoreType, String upstreamId,
                                                        String serviceName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, LIST_NODES, SERVICE_NAME, serviceName, NULL_OR_EMPTY_RESPONSE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, LIST_NODES, SERVICE_NAME, serviceName, NULL_OR_EMPTY_RESPONSE)).mark();
     }
   }
 
-  public static void recordNodeDataSinkUnknownFailure(DataStoreType dataStoreType, String metricId,
+  public static void recordNodeDataSinkUnknownFailure(DataStoreType dataStoreType, String upstreamId,
                                                       String serviceName, String exceptionName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, UNKNOWN_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, SERVICE_NAME, serviceName, UNKNOWN_FAILURE)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, SERVICE_NAME, serviceName, UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, SERVICE_NAME, serviceName, UNKNOWN_FAILURE, exceptionName)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, SERVICE_NAME, serviceName, UNKNOWN_FAILURE, exceptionName)).mark();
     }
   }
 
-  public static void recordNodeDataSinkSerDeFailure(DataStoreType dataStoreType, String metricId,
+  public static void recordNodeDataSinkSerDeFailure(DataStoreType dataStoreType, String upstreamId,
                                                     String serDe, String serviceName, String exceptionName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, serDe, FAILURE)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, serDe, FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, serDe, SERVICE_NAME, serviceName, FAILURE)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, serDe, SERVICE_NAME, serviceName, FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, NODE_DATA_SINK, serDe, SERVICE_NAME, serviceName, FAILURE, exceptionName)).mark();
+              DATA_SOURCE, upstreamId, NODE_DATA_SINK, serDe, SERVICE_NAME, serviceName, FAILURE, exceptionName)).mark();
     }
   }
 
-  public static void recordNullOrEmptyRegisterServiceResponse(DataStoreType dataStoreType, String metricId,
+  public static void recordNullOrEmptyRegisterServiceResponse(DataStoreType dataStoreType, String upstreamId,
                                                               String serviceName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, REGISTER_SERVICE, NULL_OR_EMPTY_RESPONSE)).mark();
+              DATA_SOURCE, upstreamId, HTTP_CALL, REGISTER_SERVICE, NULL_OR_EMPTY_RESPONSE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, REGISTER_SERVICE, SERVICE_NAME, serviceName, NULL_OR_EMPTY_RESPONSE))
+              DATA_SOURCE, upstreamId, HTTP_CALL, REGISTER_SERVICE, SERVICE_NAME, serviceName, NULL_OR_EMPTY_RESPONSE))
               .mark();
     }
   }

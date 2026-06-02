@@ -135,9 +135,9 @@ class HttpServiceDataSourceMetricsIntegrationTest {
         assertEquals(1, statusMeter.getCount());
     }
 
-    private HttpClientConfig buildConfig(WireMockRuntimeInfo wmInfo, String metricId) {
+    private HttpClientConfig buildConfig(WireMockRuntimeInfo wmInfo, String upstreamId) {
         return HttpClientConfig.builder()
-                .id(metricId)
+                .id(upstreamId)
                 .host("127.0.0.1")
                 .port(wmInfo.getHttpPort())
                 .connectionTimeoutMs(30_000)

@@ -53,8 +53,8 @@ public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> 
     }
 
     @Override
-    public String getMetricId() {
-        return metricId;
+    public String getUpstreamId() {
+        return upstreamId;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> 
     @Override
     public boolean isActive() {
         var healthy = droveClient.healthy();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.DROVE, metricId, healthy);
+        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
         return healthy;
     }
 

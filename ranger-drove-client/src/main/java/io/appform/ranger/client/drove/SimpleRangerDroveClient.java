@@ -58,7 +58,7 @@ public class SimpleRangerDroveClient<T> extends AbstractRangerClient<T, ListBase
         requireNonNull(deserializer, "deserializer can't be null");
 
         this.serviceFinder = DroveServiceFinderBuilders.<T>droveUnshardedServiceFinderBuilider()
-                .withMetricId(clientConfig.getId())
+                .withUpstreamId(clientConfig.getId())
                 .withClientConfig(clientConfig)
                 .withServiceName(serviceName)
                 .withNamespace(namespace)

@@ -61,7 +61,7 @@ public class HttpShardedServiceFinderFactory <T> implements ServiceFinderFactory
     @Override
     public ServiceFinder<T, MapBasedServiceRegistry<T>> buildFinder(Service service) {
         val serviceFinder = new HttpShardedServiceFinderBuilder<T>()
-                .withMetricId(clientConfig.getId())
+                .withUpstreamId(clientConfig.getId())
                 .withClientConfig(clientConfig)
                 .withObjectMapper(mapper)
                 .withHttpCommunicator(httpClient)

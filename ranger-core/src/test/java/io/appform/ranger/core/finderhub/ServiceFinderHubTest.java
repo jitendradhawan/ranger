@@ -17,7 +17,6 @@
 package io.appform.ranger.core.finderhub;
 
 
-import com.google.common.collect.Lists;
 import io.appform.ranger.core.exceptions.CommunicationException;
 import io.appform.ranger.core.finder.BaseServiceFinderBuilder;
 import io.appform.ranger.core.finder.ServiceFinder;
@@ -47,7 +46,7 @@ class ServiceFinderHubTest {
             new DynamicDataSource(List.of(new Service("NS", "PRE_REGISTERED_SERVICE"))),
             service ->
                     new TestServiceFinderBuilder()
-                            .withMetricId("test-metric")
+                            .withUpstreamId("test-metric")
                             .withNamespace(service.getNamespace())
                             .withServiceName(service.getServiceName())
                             .withDeserializer(new Deserializer<TestNodeData>() {
@@ -94,7 +93,7 @@ class ServiceFinderHubTest {
     void testDelayedServiceAddition() {
         val delayedHub = new ServiceFinderHub<>(new DynamicDataSource(List.of(new Service("NS", "SERVICE"))),
                 service ->  new TestServiceFinderBuilder()
-                        .withMetricId("test-metric")
+                        .withUpstreamId("test-metric")
                         .withNamespace(service.getNamespace())
                         .withServiceName(service.getServiceName())
                         .withDeserializer(new Deserializer<TestNodeData>() {})
@@ -103,7 +102,7 @@ class ServiceFinderHubTest {
         Assertions.assertThrows(IllegalStateException.class, delayedHub::start);
         val serviceFinderHub = new ServiceFinderHub<>(new DynamicDataSource(List.of(new Service("NS", "SERVICE"))),
                 service ->  new TestServiceFinderBuilder()
-                        .withMetricId("test-metric")
+                        .withUpstreamId("test-metric")
                         .withNamespace(service.getNamespace())
                         .withServiceName(service.getServiceName())
                         .withDeserializer(new Deserializer<TestNodeData>() {})
@@ -117,7 +116,7 @@ class ServiceFinderHubTest {
     @Test
     void testDynamicServiceAdditionWithNonDynamicDataSource() {
         val serviceFinderHub = new ServiceFinderHub<>(new StaticDataSource(new HashSet<>()), service -> new TestServiceFinderBuilder()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withNamespace(service.getNamespace())
                 .withServiceName(service.getServiceName())
                 .withDeserializer(new Deserializer<TestNodeData>() {
@@ -139,7 +138,7 @@ class ServiceFinderHubTest {
                         new DynamicDataSource(List.of(new Service("NS", "PRE_REGISTERED_SERVICE"))),
                         service ->
                                 new TestServiceFinderBuilder()
-                                        .withMetricId("test-metric")
+                                        .withUpstreamId("test-metric")
                                         .withNamespace(service.getNamespace())
                                         .withServiceName(service.getServiceName())
                                         .withNodeSelector(new WeightedRandomServiceNodeSelector<>(
@@ -152,7 +151,7 @@ class ServiceFinderHubTest {
                                         })
                                         .withDataSource(new NodeDataSource<>() {
                                             @Override
-                                            public String getMetricId() {
+                                            public String getUpstreamId() {
                                                 return "testVaryingWeights";
                                             }
 
@@ -244,7 +243,7 @@ class ServiceFinderHubTest {
                         new DynamicDataSource(List.of(new Service("NS", "PRE_REGISTERED_SERVICE"))),
                         service ->
                                 new TestServiceFinderBuilder()
-                                        .withMetricId("test-metric")
+                                        .withUpstreamId("test-metric")
                                         .withNamespace(service.getNamespace())
                                         .withServiceName(service.getServiceName())
                                         .withNodeSelector(new WeightedRandomServiceNodeSelector<>(
@@ -257,7 +256,7 @@ class ServiceFinderHubTest {
                                         })
                                         .withDataSource(new NodeDataSource<>() {
                                             @Override
-                                            public String getMetricId() {
+                                            public String getUpstreamId() {
                                                 return "testVaryingNodeAge";
                                             }
 
@@ -349,7 +348,7 @@ class ServiceFinderHubTest {
         @Override
         public ServiceFinder<TestNodeData, MapBasedServiceRegistry<TestNodeData>> buildFinder(Service service) {
             val finder = new TestServiceFinderBuilder()
-                    .withMetricId("test-metric")
+                    .withUpstreamId("test-metric")
                     .withNamespace(service.getNamespace())
                     .withServiceName(service.getServiceName())
                     .withDeserializer(new Deserializer<TestNodeData>() {})
@@ -386,7 +385,7 @@ private static class TestServiceFinderHubBuilder extends ServiceFinderHubBuilder
         }
 
         @Override
-        protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(String metricId, Service service) {
+        protected NodeDataSource<TestNodeData, Deserializer<TestNodeData>> dataSource(String upstreamId, Service service) {
             return testNodeDataSource;
         }
 
@@ -412,7 +411,7 @@ private static class TestServiceFinderHubBuilder extends ServiceFinderHubBuilder
 
         private static class TestNodeDataSource implements NodeDataSource<TestNodeData, Deserializer<TestNodeData>> {
             @Override
-            public String getMetricId() {
+            public String getUpstreamId() {
                 return "testNodeDataSource";
             }
 

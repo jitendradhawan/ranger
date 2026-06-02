@@ -69,8 +69,8 @@ public class ZkSimpleShardedServiceFinderBuilder<T> extends SimpleShardedService
     }
 
     @Override
-    protected NodeDataSource<T, ZkNodeDataDeserializer<T>> dataSource(String metricId, Service service) {
-        return new ZkNodeDataSource<>(metricId, service, curatorFramework);
+    protected NodeDataSource<T, ZkNodeDataDeserializer<T>> dataSource(String upstreamId, Service service) {
+        return new ZkNodeDataSource<>(upstreamId, service, curatorFramework);
     }
 
     @Override

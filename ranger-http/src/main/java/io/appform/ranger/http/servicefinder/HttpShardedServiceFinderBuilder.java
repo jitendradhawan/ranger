@@ -56,8 +56,8 @@ public class HttpShardedServiceFinderBuilder<T> extends SimpleShardedServiceFind
     }
 
     @Override
-    protected NodeDataSource<T, HTTPResponseDataDeserializer<T>> dataSource(String metricId, Service service) {
-        return new HttpNodeDataSource<>(metricId, service, clientConfig,
+    protected NodeDataSource<T, HTTPResponseDataDeserializer<T>> dataSource(String upstreamId, Service service) {
+        return new HttpNodeDataSource<>(upstreamId, service, clientConfig,
                                         Objects.requireNonNullElseGet(httpCommunicator,
                                                                       () -> RangerHttpUtils.httpClient(clientConfig, mapper)));
     }

@@ -63,7 +63,7 @@ class BaseServiceProviderBuilderTest {
                 .setNext(new HealthStatusHandler<>());
         try {
             val serviceProvider = ServiceProviderBuilders.unshardedServiceProviderBuilder()
-                    .withMetricId("test-metric")
+                    .withUpstreamId("test-metric")
                     .withConnectionString(testingCluster.getConnectString())
                     .withNamespace("test")
                     .withServiceName("test-service")
@@ -87,7 +87,7 @@ class BaseServiceProviderBuilderTest {
         Assertions.assertTrue(exception instanceof IllegalArgumentException);
 
         val serviceProvider = ServiceProviderBuilders.unshardedServiceProviderBuilder()
-                .withMetricId("test-metric")
+                .withUpstreamId("test-metric")
                 .withConnectionString(testingCluster.getConnectString())
                 .withNamespace("test")
                 .withServiceName("test-service")

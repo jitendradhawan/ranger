@@ -49,7 +49,7 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings({"unchecked", "unused", "UnusedReturnValue"})
 public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProviderBuilder<T, B, S>, S extends Serializer<T>> {
 
-    protected String metricId;
+    protected String upstreamId;
     protected String namespace;
     protected String serviceName;
     protected S serializer;
@@ -69,8 +69,8 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
     /* list of isolated monitors */
     private final List<IsolatedHealthMonitor<HealthcheckStatus>> isolatedMonitors = new ArrayList<>();
 
-    public B withMetricId(final String metricId) {
-        this.metricId = metricId;
+    public B withUpstreamId(final String upstreamId) {
+        this.upstreamId = upstreamId;
         return (B)this;
     }
 
@@ -179,7 +179,7 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
     }
 
     protected final ServiceProvider<T, S> buildProvider() {
-        requireNonNull(metricId);
+        requireNonNull(upstreamId);
         requireNonNull(namespace);
         requireNonNull(serviceName);
         requireNonNull(serializer);
@@ -205,7 +205,7 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
 
         healthchecks.add(serviceHealthAggregator);
         val service = Service.builder().namespace(namespace).serviceName(serviceName).build();
-        val usableNodeDataSource = dataSink(metricId, service);
+        val usableNodeDataSource = dataSink(upstreamId, service);
 
         val healthcheckUpdateSignalGenerator
                 = new ScheduledSignal<>(
@@ -251,5 +251,5 @@ public abstract class BaseServiceProviderBuilder<T, B extends BaseServiceProvide
 
     public abstract ServiceProvider<T,S> build();
 
-    protected abstract NodeDataSink<T,S> dataSink(String metricId, final Service service);
+    protected abstract NodeDataSink<T,S> dataSink(String upstreamId, final Service service);
 }
