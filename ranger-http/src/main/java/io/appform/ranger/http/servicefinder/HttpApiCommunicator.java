@@ -213,7 +213,6 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
                 if(serviceNodesResponse == null || serviceNodesResponse.getData() == null || serviceNodesResponse.getData().isEmpty()) {
                     MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId);
                     MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.HTTP, metricId, service.getServiceName());
-                    log.warn("Received empty node list from http. Response body: {}", response.body());
                 }
 
                 if (serviceNodesResponse.valid()) {

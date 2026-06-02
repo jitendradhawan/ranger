@@ -235,7 +235,23 @@ public class MetricRecorder {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, metricId, HTTP_CALL, REGISTER_SERVICE, NULL_OR_EMPTY_RESPONSE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, metricId, HTTP_CALL, REGISTER_SERVICE, SERVICE_NAME, serviceName, NULL_OR_EMPTY_RESPONSE)).mark();
+              DATA_SOURCE, metricId, HTTP_CALL, REGISTER_SERVICE, SERVICE_NAME, serviceName, NULL_OR_EMPTY_RESPONSE))
+              .mark();
     }
   }
+
+  public static void recordServiceNodesReturned(String serviceName, int serviceNodes) {
+    if (metricRegistry != null) {
+      metricRegistry.histogram(MetricRegistry.name(PACKAGE_PREFIX, SERVICE_NAME,
+              serviceName, "nodesReturned")).update(serviceNodes);
+    }
+  }
+
+  public static void recordServicesReturned(int services) {
+    if (metricRegistry != null) {
+      metricRegistry.histogram(MetricRegistry.name(PACKAGE_PREFIX,"servicesReturned"))
+              .update(services);
+    }
+  }
+
 }
