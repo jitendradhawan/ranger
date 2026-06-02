@@ -24,7 +24,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Constants {
     public static final String DEFAULT_NAMESPACE = "default";
-    public static final String DEFAULT_DATA_SINK_ID = "RANGER_DISCOVERY_ZOOKEEPER";
+    public static final String DEFAULT_DATA_SINK_ID = "zkServiceDiscovery";
 
     public static final String DEFAULT_HOST = "__DEFAULT_SERVICE_HOST";
     public static final int DEFAULT_PORT = -1;

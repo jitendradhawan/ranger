@@ -195,12 +195,14 @@ public class DroveApiCommunicator implements DroveCommunicator {
                     });
 
             if(apiResponse == null || apiResponse.getData() == null || apiResponse.getData().isEmpty()) {
+                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.DROVE, metricId);
                 services.forEach(service -> MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.DROVE, metricId, service.getServiceName()));
                 log.warn("Received empty services list from drove. Response body: {}", response.body());
             }
 
             return apiResponse;
         } catch (JsonProcessingException e) {
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.DROVE, metricId);
             services.forEach(service -> MetricRecorder.recordListNodesParseFailure(DataStoreType.DROVE, metricId, service.getServiceName()));
             log.error("Error parsing response from drove: {}. Response body: {}", e.getMessage(), response.body(), e);
             throw new DroveCommunicationException("Error parsing response from drove: " + e.getMessage());

@@ -312,6 +312,11 @@ class HttpApiCommunicatorMetricsIntegrationTest {
         assertThrows(Exception.class, () -> communicator.listNodes(service, deserializer));
 
         // The listNodes parse failure meter should exist
+        val aggregateParseMeter = metricRegistry.getMeters().get(
+                METRIC_PREFIX + ".dataStoreType.HTTP.dataSource.http-metric-9.httpCall.listNodes.responseParseFailure");
+        assertNotNull(aggregateParseMeter, "Aggregate list nodes parse failure meter should be recorded");
+        assertEquals(1, aggregateParseMeter.getCount());
+
         val parseMeter = metricRegistry.getMeters().get(
                 METRIC_PREFIX + ".dataStoreType.HTTP.dataSource.http-metric-9.httpCall.listNodes.serviceName.parse-fail-svc.responseParseFailure");
         assertNotNull(parseMeter, "List nodes parse failure meter should be recorded");

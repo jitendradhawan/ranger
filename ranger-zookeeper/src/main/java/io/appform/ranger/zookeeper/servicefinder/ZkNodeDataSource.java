@@ -90,6 +90,7 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
             List<ServiceNode<T>> nodes = new ArrayList<>(children.size());
             log.debug("Found {} nodes for [{}]", children.size(), serviceName);
             if(children.isEmpty()){
+                MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
                 MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
             }
             for (val child : children) {
@@ -103,6 +104,7 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
             return Optional.of(nodes);
         }
         catch (NoNodeException e) {
+            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
             MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
             log.error(
                     "No ZK container node found for service: {}. Will return empty list for now. Please doublecheck service name",
@@ -121,6 +123,7 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
         try {
             return deserializer.deserialize(data);
         } catch (Exception e) {
+            MetricRecorder.recordListNodesParseFailure(DataStoreType.ZK, metricId);
             MetricRecorder.recordListNodesParseFailure(DataStoreType.ZK, metricId, serviceName);
             log.error("Error deserializing node data : {} for service name: {} ", new String(data), serviceName, e);
             throw e;
@@ -133,11 +136,13 @@ public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends Zk
             return Optional.ofNullable(curatorFramework.getData().forPath(path));
         }
         catch (KeeperException.NoNodeException e) {
+            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
             MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
             log.warn("Node not found for path {}", path);
             return Optional.empty();
         }
         catch (KeeperException e) {
+            MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId);
             MetricRecorder.recordNullOrEmptyListNodeResponse(DataStoreType.ZK, metricId, serviceName);
             log.error("Could not get data for node: {}", path, e);
             return Optional.empty();

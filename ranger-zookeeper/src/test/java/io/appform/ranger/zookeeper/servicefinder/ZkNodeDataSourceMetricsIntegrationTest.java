@@ -186,6 +186,11 @@ class ZkNodeDataSourceMetricsIntegrationTest {
         assertTrue(result.get().isEmpty());
 
         // Verify null/empty list node response metric
+        val aggregateMeter = metricRegistry.getMeters().get(
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-4.httpCall.listNodes.nullOrEmptyResponse");
+        assertNotNull(aggregateMeter, "Aggregate empty list node meter should be recorded");
+        assertEquals(1, aggregateMeter.getCount());
+
         val emptyMeter = metricRegistry.getMeters().get(
                 METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-4.httpCall.listNodes.serviceName."
                         + SERVICE_NAME + ".nullOrEmptyResponse");
@@ -212,6 +217,11 @@ class ZkNodeDataSourceMetricsIntegrationTest {
         assertTrue(result.get().isEmpty());
 
         // Verify null/empty list node response metric (NoNodeException path)
+        val aggregateMeter = metricRegistry.getMeters().get(
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-5.httpCall.listNodes.nullOrEmptyResponse");
+        assertNotNull(aggregateMeter, "Aggregate empty list node meter should be recorded for NoNodeException");
+        assertTrue(aggregateMeter.getCount() >= 1);
+
         val emptyMeter = metricRegistry.getMeters().get(
                 METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-5.httpCall.listNodes.serviceName.nonexistent-svc.nullOrEmptyResponse");
         assertNotNull(emptyMeter, "Empty list node meter should be recorded for NoNodeException");
@@ -243,6 +253,11 @@ class ZkNodeDataSourceMetricsIntegrationTest {
         assertThrows(RuntimeException.class, () -> dataSource.refresh(badDeserializer));
 
         // Verify list nodes parse failure metric
+        val aggregateParseMeter = metricRegistry.getMeters().get(
+                METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-6.httpCall.listNodes.responseParseFailure");
+        assertNotNull(aggregateParseMeter, "Aggregate list nodes parse failure meter should be recorded");
+        assertEquals(1, aggregateParseMeter.getCount());
+
         val parseMeter = metricRegistry.getMeters().get(
                 METRIC_PREFIX + ".dataStoreType.ZK.dataSource.zk-node-src-6.httpCall.listNodes.serviceName."
                         + SERVICE_NAME + ".responseParseFailure");

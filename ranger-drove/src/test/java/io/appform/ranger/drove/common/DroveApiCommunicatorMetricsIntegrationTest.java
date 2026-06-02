@@ -221,6 +221,11 @@ class DroveApiCommunicatorMetricsIntegrationTest {
             assertTrue(nodes.isEmpty());
 
             // Verify null/empty list node response
+            val aggregateMeter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-7.httpCall.listNodes.nullOrEmptyResponse");
+            assertNotNull(aggregateMeter, "Aggregate null/empty list node response meter should be recorded");
+            assertEquals(1, aggregateMeter.getCount());
+
             val emptyMeter = metricRegistry.getMeters().get(
                     METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-7.httpCall.listNodes.serviceName.TEST_APP.nullOrEmptyResponse");
             assertNotNull(emptyMeter, "Null/empty list node response meter should be recorded");
@@ -242,6 +247,11 @@ class DroveApiCommunicatorMetricsIntegrationTest {
             assertThrows(DroveCommunicationException.class, () -> client.listNodes(service));
 
             // Verify list nodes parse failure
+            val aggregateParseMeter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-8.httpCall.listNodes.responseParseFailure");
+            assertNotNull(aggregateParseMeter, "Aggregate list nodes parse failure meter should be recorded");
+            assertEquals(1, aggregateParseMeter.getCount());
+
             val parseMeter = metricRegistry.getMeters().get(
                     METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-8.httpCall.listNodes.serviceName.PARSE_FAIL_APP.responseParseFailure");
             assertNotNull(parseMeter, "List nodes parse failure meter should be recorded");
@@ -267,6 +277,79 @@ class DroveApiCommunicatorMetricsIntegrationTest {
                     METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-9.httpCall.listNodes.responseStatus.503");
             assertNotNull(statusMeter, "503 status meter for listNodes should be recorded");
             assertEquals(1, statusMeter.getCount());
+        }
+    }
+
+    // ==================== listNodes() - Multi-service: aggregate pushed only once ====================
+
+    @Test
+    @SneakyThrows
+    void testListNodes_multiServiceEmptyResponse_aggregateMetricPushedOnce(WireMockRuntimeInfo wm) {
+        val nodeResponse = ApiResponse.success(List.<ExposedAppInfo>of()); // empty list
+
+        stubFor(get(urlPathEqualTo("/apis/v1/endpoints"))
+                .withBasicAuth("guest", "guest")
+                .willReturn(aResponse()
+                        .withBody(MAPPER.writeValueAsBytes(nodeResponse))
+                        .withStatus(200)));
+
+        try (val client = buildClient(wm, "drove-api-10")) {
+            val service1 = new Service("testns", "APP_ONE");
+            val service2 = new Service("testns", "APP_TWO");
+            val result = client.listNodes(List.of(service1, service2));
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+
+            // Aggregate metric must be pushed exactly once regardless of how many services were in the batch
+            val aggregateMeter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-10.httpCall.listNodes.nullOrEmptyResponse");
+            assertNotNull(aggregateMeter, "Aggregate null/empty metric should be recorded");
+            assertEquals(1, aggregateMeter.getCount(),
+                    "Aggregate metric must be pushed exactly once even for multi-service batches");
+
+            // Service-level metrics pushed once per service
+            val svc1Meter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-10.httpCall.listNodes.serviceName.APP_ONE.nullOrEmptyResponse");
+            assertNotNull(svc1Meter, "Service-level metric for APP_ONE should be recorded");
+            assertEquals(1, svc1Meter.getCount());
+
+            val svc2Meter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-10.httpCall.listNodes.serviceName.APP_TWO.nullOrEmptyResponse");
+            assertNotNull(svc2Meter, "Service-level metric for APP_TWO should be recorded");
+            assertEquals(1, svc2Meter.getCount());
+        }
+    }
+
+    @Test
+    @SneakyThrows
+    void testListNodes_multiServiceParseFailure_aggregateMetricPushedOnce(WireMockRuntimeInfo wm) {
+        stubFor(get(urlPathEqualTo("/apis/v1/endpoints"))
+                .withBasicAuth("guest", "guest")
+                .willReturn(aResponse().withStatus(200).withBody("invalid-json{{{{")));
+
+        try (val client = buildClient(wm, "drove-api-11")) {
+            val service1 = new Service("testns", "APP_ONE");
+            val service2 = new Service("testns", "APP_TWO");
+            assertThrows(DroveCommunicationException.class, () -> client.listNodes(List.of(service1, service2)));
+
+            // Aggregate metric must be pushed exactly once
+            val aggregateParseMeter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-11.httpCall.listNodes.responseParseFailure");
+            assertNotNull(aggregateParseMeter, "Aggregate parse failure metric should be recorded");
+            assertEquals(1, aggregateParseMeter.getCount(),
+                    "Aggregate metric must be pushed exactly once even for multi-service batches");
+
+            // Service-level metrics pushed once per service
+            val svc1Meter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-11.httpCall.listNodes.serviceName.APP_ONE.responseParseFailure");
+            assertNotNull(svc1Meter, "Service-level parse failure metric for APP_ONE should be recorded");
+            assertEquals(1, svc1Meter.getCount());
+
+            val svc2Meter = metricRegistry.getMeters().get(
+                    METRIC_PREFIX + ".dataStoreType.DROVE.dataSource.drove-api-11.httpCall.listNodes.serviceName.APP_TWO.responseParseFailure");
+            assertNotNull(svc2Meter, "Service-level parse failure metric for APP_TWO should be recorded");
+            assertEquals(1, svc2Meter.getCount());
         }
     }
 

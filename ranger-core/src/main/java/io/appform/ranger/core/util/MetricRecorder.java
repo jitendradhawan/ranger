@@ -135,6 +135,13 @@ public class MetricRecorder {
     }
   }
 
+  public static void recordListNodesParseFailure(DataStoreType dataStoreType, String metricId) {
+    if (metricRegistry != null) {
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, HTTP_CALL, LIST_NODES, RESPONSE_PARSE_FAILURE)).mark();
+    }
+  }
+
   public static void recordListNodesParseFailure(DataStoreType dataStoreType, String metricId, String serviceName) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
@@ -183,6 +190,13 @@ public class MetricRecorder {
     }
   }
 
+  public static void recordNullOrEmptyListNodeResponse(DataStoreType dataStoreType, String metricId) {
+    if (metricRegistry != null) {
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, HTTP_CALL, LIST_NODES, NULL_OR_EMPTY_RESPONSE)).mark();
+    }
+  }
+
   public static void recordNullOrEmptyListNodeResponse(DataStoreType dataStoreType, String metricId,
                                                        String serviceName) {
     if (metricRegistry != null) {
@@ -194,6 +208,8 @@ public class MetricRecorder {
   public static void recordNodeDataSinkUnknownFailure(DataStoreType dataStoreType, String metricId,
                                                       String serviceName, String exceptionName) {
     if (metricRegistry != null) {
+      metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, metricId, NODE_DATA_SINK, UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, metricId, NODE_DATA_SINK, SERVICE_NAME, serviceName, UNKNOWN_FAILURE)).mark();
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
