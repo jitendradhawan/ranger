@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea
+target
+*.ipr
+*.iml
+*.iws
+out
+dep
+.java-version
+stage.yml
