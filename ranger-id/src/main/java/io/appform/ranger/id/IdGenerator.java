@@ -191,7 +191,7 @@ public class IdGenerator {
                                 .prefix(prefix)
                                 .constraints(domain.getConstraints())
                                 .skipGlobal(skipGlobal)
-                                .domain(domain.getDomain())
+                                .domain(domain.getDomainName())
                                 .idFormatter(domain.getIdFormatter())
                                 .build());
     }

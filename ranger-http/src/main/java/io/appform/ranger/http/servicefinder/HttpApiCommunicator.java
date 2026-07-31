@@ -134,7 +134,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
 
     @Override
     public void close() throws Exception {
-
+        // No resources to release; HTTP client lifecycle is managed externally
     }
 
     private <U> U executeRemoteCall(Supplier<U> executor) {

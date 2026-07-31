@@ -37,7 +37,7 @@ public class Domain {
                                                     new DefaultIdFormatter(),
                                                     TimeUnit.MILLISECONDS);
 
-    private final String domain;
+    private final String domainName;
     private final List<IdValidationConstraint> constraints;
     private final IdFormatter idFormatter;
     private final CollisionChecker collisionChecker;
@@ -48,7 +48,7 @@ public class Domain {
                   @NonNull List<IdValidationConstraint> constraints,
                   IdFormatter idFormatter,
                   TimeUnit resolution) {
-        this.domain = domain;
+        this.domainName = domain;
         this.constraints = constraints;
         this.idFormatter = Objects.requireNonNullElse(idFormatter, IdFormatters.original());
         this.collisionChecker = new CollisionChecker(Objects.requireNonNullElse(resolution, TimeUnit.MILLISECONDS));

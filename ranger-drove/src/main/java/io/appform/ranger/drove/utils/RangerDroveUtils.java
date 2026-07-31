@@ -63,11 +63,15 @@ public class RangerDroveUtils {
             val trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override
+                        @SuppressWarnings("java:S4830") // Intentional: insecure mode explicitly opted-in via config
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                            // No-op: certificate validation intentionally disabled when insecure=true
                         }
 
                         @Override
+                        @SuppressWarnings("java:S4830") // Intentional: insecure mode explicitly opted-in via config
                         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                            // No-op: certificate validation intentionally disabled when insecure=true
                         }
 
                         @Override
@@ -76,7 +80,7 @@ public class RangerDroveUtils {
                         }
                     }
             };
-            val sslContext = SSLContext.getInstance("SSL");
+            val sslContext = SSLContext.getInstance("TLSv1.2");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             okHttpBuilder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0]);
             okHttpBuilder.hostnameVerifier((hostname, session) -> true);
@@ -90,7 +94,7 @@ public class RangerDroveUtils {
                 .build();
     }
 
-    public static <T> DroveCommunicator buildDroveClient(
+    public static DroveCommunicator buildDroveClient(
             String namespace,
             DroveUpstreamConfig config, ObjectMapper mapper) {
         log.info("Building drove client for: {}", config.getEndpoints());
@@ -100,8 +104,6 @@ public class RangerDroveUtils {
                                                                                config.getPassword()),
                                                         new AuthHeaderDecorator(config.getAuthHeader())),
                                                 new DroveOkHttpTransport(createOkHttpClient(config)));
-//                                                new DroveHttpComponentsTransport(droveConfig,
-//                                                                                 createHttpClient(config)));
         val apiCommunicator = new DroveApiCommunicator(namespace, config, droveClient, mapper);
         return config.isSkipCaching()
                ? apiCommunicator
