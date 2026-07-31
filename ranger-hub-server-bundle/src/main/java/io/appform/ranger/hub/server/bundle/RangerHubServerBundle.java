@@ -166,7 +166,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
                                                         DroveUpstreamConfig.DEFAULT_ENVIRONMENT_TAG_NAME);
             val regionTagName = Objects.requireNonNullElse(droveConfig.getRegionTagName(),
                                                            DroveUpstreamConfig.DEFAULT_REGION_TAG_NAME);
-            val droveCommunicator = RangerDroveUtils.<ShardInfo>buildDroveClient(namespace, droveConfig, getMapper());
+            val droveCommunicator = RangerDroveUtils.buildDroveClient(namespace, droveConfig, getMapper());
             return UnshardedRangerDroveHubClient.<ShardInfo>builder()
                     .upstreamId(droveConfig.getId())
                     .namespace(namespace)

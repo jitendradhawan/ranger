@@ -195,10 +195,12 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
     /**
      * Override the following if you require.
      **/
+    @SuppressWarnings("java:S1172")
     protected Predicate<ShardInfo> getInitialCriteria(T configuration) {
         return shardInfo -> true;
     }
 
+    @SuppressWarnings("java:S1172")
     protected boolean alwaysMergeWithInitialCriteria(T configuration) {
         return false;
     }
