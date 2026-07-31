@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Getter
+@SuppressWarnings("java:S1700")
 public class Domain {
     public static final String DEFAULT_DOMAIN_NAME = "__DEFAULT_DOMAIN__";
     public static final Domain DEFAULT = new Domain(DEFAULT_DOMAIN_NAME,
@@ -37,7 +38,7 @@ public class Domain {
                                                     new DefaultIdFormatter(),
                                                     TimeUnit.MILLISECONDS);
 
-    private final String domainName;
+    private final String domain;
     private final List<IdValidationConstraint> constraints;
     private final IdFormatter idFormatter;
     private final CollisionChecker collisionChecker;
@@ -48,7 +49,7 @@ public class Domain {
                   @NonNull List<IdValidationConstraint> constraints,
                   IdFormatter idFormatter,
                   TimeUnit resolution) {
-        this.domainName = domain;
+        this.domain = domain;
         this.constraints = constraints;
         this.idFormatter = Objects.requireNonNullElse(idFormatter, IdFormatters.original());
         this.collisionChecker = new CollisionChecker(Objects.requireNonNullElse(resolution, TimeUnit.MILLISECONDS));

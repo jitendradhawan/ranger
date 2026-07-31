@@ -31,7 +31,7 @@ public class IdParsersTest {
         val id = "T2407101232336168748798";
         val parsedId = IdParsers.parse(id).orElse(null);
         Assertions.assertNotNull(parsedId);
-        Assertions.assertEquals(id, parsedId.getIdValue());
+        Assertions.assertEquals(id, parsedId.getId());
         Assertions.assertEquals(798, parsedId.getExponent());
         Assertions.assertEquals(8748, parsedId.getNode());
         assertDate("240710123233616", parsedId.getGeneratedDate());
@@ -42,7 +42,7 @@ public class IdParsersTest {
         val id = "0M00002507241535374297496628";
         val parsedId = IdParsers.parse(id).orElse(null);
         Assertions.assertNotNull(parsedId);
-        Assertions.assertEquals(id, parsedId.getIdValue());
+        Assertions.assertEquals(id, parsedId.getId());
         Assertions.assertEquals(628, parsedId.getExponent());
         Assertions.assertEquals(7496, parsedId.getNode());
         assertDate("250724153537429", parsedId.getGeneratedDate());

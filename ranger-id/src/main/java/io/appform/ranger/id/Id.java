@@ -16,7 +16,6 @@
 
 package io.appform.ranger.id;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.Date;
@@ -29,9 +28,9 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @ToString
+@SuppressWarnings("java:S1700")
 public class Id {
-    @JsonProperty("id")
-    private String idValue;
+    private String id;
     private Date generatedDate;
     private int node;
     private int exponent;

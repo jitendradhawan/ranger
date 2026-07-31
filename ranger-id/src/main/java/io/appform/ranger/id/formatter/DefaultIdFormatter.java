@@ -47,7 +47,7 @@ public class DefaultIdFormatter implements IdFormatter {
             return Optional.empty();
         }
         return Optional.of(Id.builder()
-                .idValue(idString)
+                .id(idString)
                 .node(Integer.parseInt(matcher.group(3)))
                 .exponent(Integer.parseInt(matcher.group(4)))
                 .generatedDate(DATE_TIME_FORMATTER.parseDateTime(matcher.group(2)).toDate())

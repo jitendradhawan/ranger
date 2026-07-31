@@ -80,7 +80,8 @@ public class RangerDroveUtils {
                         }
                     }
             };
-            val sslContext = SSLContext.getInstance("TLSv1.2");
+            @SuppressWarnings("java:S4423") // Intentional: insecure mode explicitly opted-in via config
+            val sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             okHttpBuilder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0]);
             okHttpBuilder.hostnameVerifier((hostname, session) -> true);

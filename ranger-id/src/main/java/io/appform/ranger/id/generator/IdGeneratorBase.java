@@ -78,7 +78,7 @@ public class IdGeneratorBase {
     }
 
     public final void registerDomain(final Domain domain) {
-        registeredDomains.put(domain.getDomainName(), domain);
+        registeredDomains.put(domain.getDomain(), domain);
     }
 
     public final synchronized void registerGlobalConstraints(final List<IdValidationConstraint> constraints) {
@@ -102,7 +102,7 @@ public class IdGeneratorBase {
         val dateTime = new DateTime(nonceInfo.getTime());
         val id = String.format("%s%s", namespace, idFormatter.format(dateTime, getNodeId(), nonceInfo.getExponent()));
         return Id.builder()
-                .idValue(id)
+                .id(id)
                 .exponent(nonceInfo.getExponent())
                 .generatedDate(dateTime.toDate())
                 .node(getNodeId())
@@ -176,7 +176,7 @@ public class IdGeneratorBase {
                 .prefix(namespace)
                 .constraints(registeredDomain.getConstraints())
                 .skipGlobal(skipGlobal)
-                .domain(registeredDomain.getDomainName())
+                .domain(registeredDomain.getDomain())
                 .idFormatter(registeredDomain.getIdFormatter())
                 .build();
         return generateWithConstraints(request);

@@ -115,13 +115,13 @@ class IdGeneratorTest {
 
     @Test
     void testGenerateOriginal() {
-        String id = IdGenerator.generate("TEST", IdFormatters.original()).getIdValue();
+        String id = IdGenerator.generate("TEST", IdFormatters.original()).getId();
         Assertions.assertEquals(26, id.length());
     }
 
     @Test
     void testGenerateBase36() {
-        String id = IdGenerator.generate("TEST", IdFormatters.base36()).getIdValue();
+        String id = IdGenerator.generate("TEST", IdFormatters.base36()).getId();
         Assertions.assertEquals(18, id.length());
     }
 
@@ -131,12 +131,12 @@ class IdGeneratorTest {
         Optional<Id> id = IdGenerator.generateWithConstraints("TEST", "TEST");
 
         Assertions.assertTrue(id.isPresent());
-        Assertions.assertEquals(26, id.get().getIdValue().length());
+        Assertions.assertEquals(26, id.get().getId().length());
 
         // Unregistered Domain
         id = IdGenerator.generateWithConstraints("TEST", "TEST1");
         Assertions.assertTrue(id.isPresent());
-        Assertions.assertEquals(26, id.get().getIdValue().length());
+        Assertions.assertEquals(26, id.get().getId().length());
     }
 
     @Test
@@ -186,7 +186,7 @@ class IdGeneratorTest {
     @Test
     void testNodeId() {
         val generatedId = IdGenerator.generate("TEST");
-        val parsedId = IdGenerator.parse(generatedId.getIdValue()).orElse(null);
+        val parsedId = IdGenerator.parse(generatedId.getId()).orElse(null);
         Assertions.assertNotNull(parsedId);
         Assertions.assertEquals(parsedId.getNode(), nodeId);
     }
@@ -221,7 +221,7 @@ class IdGeneratorTest {
         val idString = "ABC2011250959030643972247";
         val id = IdGenerator.parse(idString).orElse(null);
         Assertions.assertNotNull(id);
-        Assertions.assertEquals(idString, id.getIdValue());
+        Assertions.assertEquals(idString, id.getId());
         Assertions.assertEquals(247, id.getExponent());
         Assertions.assertEquals(3972, id.getNode());
         Assertions.assertEquals(generateDate(2020, 11, 25, 9, 59, 3, 64, ZoneId.systemDefault()),
@@ -231,9 +231,9 @@ class IdGeneratorTest {
     @Test
     void testParseSuccessAfterGeneration() {
         val generatedId = IdGenerator.generate("TEST");
-        val parsedId = IdGenerator.parse(generatedId.getIdValue()).orElse(null);
+        val parsedId = IdGenerator.parse(generatedId.getId()).orElse(null);
         Assertions.assertNotNull(parsedId);
-        Assertions.assertEquals(parsedId.getIdValue(), generatedId.getIdValue());
+        Assertions.assertEquals(parsedId.getId(), generatedId.getId());
         Assertions.assertEquals(parsedId.getExponent(), generatedId.getExponent());
         Assertions.assertEquals(parsedId.getNode(), generatedId.getNode());
         Assertions.assertEquals(parsedId.getGeneratedDate(), generatedId.getGeneratedDate());
