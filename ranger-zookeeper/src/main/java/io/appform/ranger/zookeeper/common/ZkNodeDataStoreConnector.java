@@ -168,7 +168,7 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
     public boolean isActive() {
         var zkConnectionActive = curatorFramework != null && curatorFramework.getZookeeperClient() != null
                 && curatorFramework.getZookeeperClient().isConnected();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.ZK, upstreamId, zkConnectionActive);
+        MetricRecorder.recordNodeDataSourceStatus(DataStoreType.ZK, upstreamId, zkConnectionActive);
         return zkConnectionActive;
     }
 

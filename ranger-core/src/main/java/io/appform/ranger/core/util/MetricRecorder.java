@@ -38,7 +38,7 @@ public class MetricRecorder {
   public static final String HEALTH_CHECKER = "healthChecker";
   public static final String NODE_COUNT = "nodeCount";
 
-  private static MetricRegistry metricRegistry;
+  private static volatile MetricRegistry metricRegistry;
 
   public static void initialize(MetricRegistry registry) {
     metricRegistry = registry;
@@ -51,7 +51,7 @@ public class MetricRecorder {
     }
   }
 
-  public static void recordNoteDataSourceStatus(DataStoreType dataStoreType, String upstreamId, boolean active) {
+  public static void recordNodeDataSourceStatus(DataStoreType dataStoreType, String upstreamId, boolean active) {
     if (metricRegistry != null) {
       metricRegistry.meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, active ? ACTIVE : INACTIVE)).mark();

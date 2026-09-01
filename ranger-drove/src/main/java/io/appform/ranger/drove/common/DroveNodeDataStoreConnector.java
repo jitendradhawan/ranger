@@ -66,7 +66,7 @@ public class DroveNodeDataStoreConnector<T> implements NodeDataStoreConnector<T>
     @Override
     public boolean isActive() {
         var healthy = droveClient.healthy();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
+        MetricRecorder.recordNodeDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
         return healthy;
     }
 

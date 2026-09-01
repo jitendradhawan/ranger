@@ -80,7 +80,7 @@ public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> 
     @Override
     public boolean isActive() {
         var healthy = droveClient.healthy();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
+        MetricRecorder.recordNodeDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
         return healthy;
     }
 

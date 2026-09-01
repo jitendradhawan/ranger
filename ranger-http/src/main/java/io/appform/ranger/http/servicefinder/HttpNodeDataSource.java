@@ -75,7 +75,7 @@ public class HttpNodeDataSource<T, D extends HTTPResponseDataDeserializer<T>> ex
     @Override
     public boolean isActive() {
         var httpUpstreamAvailable = upstreamAvailable.get();
-        MetricRecorder.recordNoteDataSourceStatus(DataStoreType.HTTP, upstreamId, httpUpstreamAvailable);
+        MetricRecorder.recordNodeDataSourceStatus(DataStoreType.HTTP, upstreamId, httpUpstreamAvailable);
         return httpUpstreamAvailable;
     }
 }
