@@ -22,6 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -39,6 +41,13 @@ class MetricRecorderTest {
     private static final String PACKAGE_PREFIX = "io.appform.ranger";
 
     private MetricRegistry metricRegistry;
+
+    @Test
+    void metricRegistryHolder_isThreadSafe() throws NoSuchFieldException {
+        val registryHolder = MetricRecorder.class.getDeclaredField("metricRegistry");
+
+        assertEquals(AtomicReference.class, registryHolder.getType());
+    }
 
     @BeforeEach
     void setUp() {
