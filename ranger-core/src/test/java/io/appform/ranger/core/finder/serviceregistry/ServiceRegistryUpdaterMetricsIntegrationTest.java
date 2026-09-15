@@ -224,16 +224,15 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         updater.start();
         awaitRefresh(registry);
 
-        val histName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
+        val gaugeName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
                 + ".listNodes.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
         await()
                 .atMost(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(50))
                 .untilAsserted(() -> {
-                    val histogram = metricRegistry.getHistograms().get(histName);
-                    assertNotNull(histogram, "listNodes nodeCount histogram should be recorded");
-                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
-                    assertEquals(2, histogram.getSnapshot().getMax(),
+                     val gauge = metricRegistry.getGauges().get(gaugeName);
+                     assertNotNull(gauge, "listNodes nodeCount gauge should be recorded");
+                     assertEquals(2, gauge.getValue(),
                             "Fetched count should equal total nodes returned by data source (2)");
                 });
     }
@@ -262,16 +261,15 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         updater.start();
         awaitRefresh(registry);
 
-        val histName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
+        val gaugeName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
                 + ".serviceRegistryUpdate.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
         await()
                 .atMost(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(50))
                 .untilAsserted(() -> {
-                    val histogram = metricRegistry.getHistograms().get(histName);
-                    assertNotNull(histogram, "serviceRegistryUpdate nodeCount histogram should be recorded");
-                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
-                    assertEquals(2, histogram.getSnapshot().getMax(),
+                     val gauge = metricRegistry.getGauges().get(gaugeName);
+                     assertNotNull(gauge, "serviceRegistryUpdate nodeCount gauge should be recorded");
+                     assertEquals(2, gauge.getValue(),
                             "Valid node count should equal 2 healthy, non-zombie nodes");
                 });
     }
@@ -301,28 +299,28 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         updater.start();
         awaitRefresh(registry);
 
-        val fetchedHistName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
+        val fetchedGaugeName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
                 + ".listNodes.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
-        val validHistName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
+        val validGaugeName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
                 + ".serviceRegistryUpdate.serviceName." + TEST_SERVICE.getServiceName() + ".nodeCount";
 
         await()
                 .atMost(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(50))
                 .untilAsserted(() -> {
-                    val fetchedHist = metricRegistry.getHistograms().get(fetchedHistName);
-                    val validHist = metricRegistry.getHistograms().get(validHistName);
-                    assertNotNull(fetchedHist, "Fetched count histogram should exist");
-                    assertNotNull(validHist, "Valid count histogram should exist");
-                    assertEquals(2, fetchedHist.getSnapshot().getMax(),
+                     val fetchedGauge = metricRegistry.getGauges().get(fetchedGaugeName);
+                     val validGauge = metricRegistry.getGauges().get(validGaugeName);
+                     assertNotNull(fetchedGauge, "Fetched count gauge should exist");
+                     assertNotNull(validGauge, "Valid count gauge should exist");
+                     assertEquals(2, fetchedGauge.getValue(),
                             "Fetched count should be 2 (all nodes including zombie)");
-                    assertEquals(1, validHist.getSnapshot().getMax(),
+                     assertEquals(1, validGauge.getValue(),
                             "Valid count should be 1 (zombie filtered out)");
                 });
     }
 
     @Test
-    void testInactiveDataSource_recordsStaleDataRetainedWithNodeCountHistogram() {
+    void testInactiveDataSource_recordsStaleDataRetainedWithNodeCountGauge() {
         val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
         val nodes = List.of(
                 ServiceNode.<TestNodeData>builder()
@@ -349,23 +347,21 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         dataSource.setActive(false);
         signal.fire();
 
-        val staleNodeCountHistName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
+        val staleNodeCountGaugeName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID
                 + ".serviceName." + TEST_SERVICE.getServiceName() + ".staleDataRetained.nodeCount";
         await()
                 .atMost(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(50))
                 .untilAsserted(() -> {
-                    val histogram = metricRegistry.getHistograms().get(staleNodeCountHistName);
-                    assertNotNull(histogram, "staleDataRetained nodeCount histogram should be recorded");
-                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
-                    // The stale path retains healthy nodes only; 2 healthy nodes were present
-                    assertTrue(histogram.getSnapshot().getMax() >= 0,
-                            "Histogram should record a non-negative node count");
+                     val gauge = metricRegistry.getGauges().get(staleNodeCountGaugeName);
+                     assertNotNull(gauge, "staleDataRetained nodeCount gauge should be recorded");
+                     assertTrue((Integer) gauge.getValue() >= 0,
+                             "Gauge should expose a non-negative node count");
                 });
     }
 
     @Test
-    void testCallFailure_recordsStaleDataRetainedWithNodeCountHistogram() {
+    void testCallFailure_recordsStaleDataRetainedWithNodeCountGauge() {
         val registry = new MapBasedServiceRegistry<TestNodeData>(TEST_SERVICE);
         val signal = new TestSignal();
 
@@ -396,15 +392,14 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
             // May throw on initial update failure
         }
 
-        val staleNodeCountHistName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
+        val staleNodeCountGaugeName = "io.appform.ranger.dataStoreType.HTTP.dataSource." + METRIC_ID
                 + ".serviceName." + TEST_SERVICE.getServiceName() + ".staleDataRetained.nodeCount";
         await()
                 .atMost(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(50))
                 .untilAsserted(() -> {
-                    val histogram = metricRegistry.getHistograms().get(staleNodeCountHistName);
-                    assertNotNull(histogram, "staleDataRetained nodeCount histogram should be recorded on call failure");
-                    assertTrue(histogram.getCount() >= 1, "Histogram should have at least one update");
+                     val gauge = metricRegistry.getGauges().get(staleNodeCountGaugeName);
+                     assertNotNull(gauge, "staleDataRetained nodeCount gauge should be recorded on call failure");
                 });
 
         updater2.stop();

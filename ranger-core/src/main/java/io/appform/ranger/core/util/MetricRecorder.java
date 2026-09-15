@@ -2,12 +2,16 @@ package io.appform.ranger.core.util;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.UniformReservoir;
 import io.appform.ranger.core.model.DataStoreType;
 import lombok.val;
 import lombok.experimental.UtilityClass;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -44,11 +48,13 @@ public class MetricRecorder {
   public static final String NODE_COUNT = "nodeCount";
 
   private static final AtomicReference<MetricRegistry> metricRegistry = new AtomicReference<>();
+  private static final ConcurrentMap<String, AtomicInteger> nodeCountGauges = new ConcurrentHashMap<>();
 
   private static final int NODE_COUNT_RESERVOIR_SIZE = 64;
 
   public static void initialize(MetricRegistry registry) {
     metricRegistry.set(registry);
+    nodeCountGauges.clear();
   }
 
   private static MetricRegistry registry() {
@@ -57,6 +63,18 @@ public class MetricRecorder {
 
   private static Histogram nodeCountHistogram(String name) {
     return registry().histogram(name, () -> new Histogram(new UniformReservoir(NODE_COUNT_RESERVOIR_SIZE)));
+  }
+
+  private static void recordNodeCount(String name, int value) {
+    if (registry() == null) {
+      return;
+    }
+    val gaugeValue = nodeCountGauges.computeIfAbsent(name, ignored -> {
+      val valueHolder = new AtomicInteger();
+      registry().register(name, (Gauge<Integer>) valueHolder::get);
+      return valueHolder;
+    });
+    gaugeValue.set(value);
   }
 
   public static void recordUnknownServiceRequest() {
@@ -105,7 +123,7 @@ public class MetricRecorder {
               DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
       val metricName = MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED, NODE_COUNT);
-      nodeCountHistogram(metricName).update(size);
+      recordNodeCount(metricName, size);
     }
   }
 
@@ -281,7 +299,7 @@ public class MetricRecorder {
     if (registry() != null) {
       val metricName = MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, "serviceRegistryUpdate", SERVICE_NAME, serviceName, NODE_COUNT);
-      nodeCountHistogram(metricName).update(size);
+      recordNodeCount(metricName, size);
     }
   }
 
@@ -289,7 +307,7 @@ public class MetricRecorder {
     if (registry() != null) {
       val metricName = MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, LIST_NODES, SERVICE_NAME, serviceName, NODE_COUNT);
-      nodeCountHistogram(metricName).update(size);
+      recordNodeCount(metricName, size);
     }
   }
 }

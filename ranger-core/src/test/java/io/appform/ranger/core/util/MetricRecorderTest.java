@@ -16,6 +16,7 @@
 package io.appform.ranger.core.util;
 
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Gauge;
 import io.appform.ranger.core.model.DataStoreType;
 import lombok.val;
 import org.junit.jupiter.api.AfterEach;
@@ -88,15 +89,14 @@ class MetricRecorderTest {
     }
 
     @Test
-    void recordStaleDataRetained_updatesNodeCountHistogram() {
+    void recordStaleDataRetained_updatesNodeCountGauge() {
         MetricRecorder.recordStaleDataRetained(SERVICE_NAME, DataStoreType.DROVE, UPSTREAM_ID, 7);
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.DROVE.dataSource." + UPSTREAM_ID
                 + ".serviceName." + SERVICE_NAME + ".staleDataRetained.nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram, "staleDataRetained nodeCount histogram should be created");
-        assertEquals(1, histogram.getCount(), "Histogram should have one update");
-        assertEquals(7, histogram.getSnapshot().getMax(), "Histogram max should equal size passed (7)");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge, "staleDataRetained nodeCount gauge should be created");
+        assertEquals(7, gauge.getValue(), "Gauge should expose latest size (7)");
     }
 
     @Test
@@ -105,9 +105,9 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".serviceName." + SERVICE_NAME + ".staleDataRetained.nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram);
-        assertEquals(0, histogram.getSnapshot().getMax(), "Histogram max should be 0 when size is 0");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge);
+        assertEquals(0, gauge.getValue(), "Gauge should expose zero when size is zero");
     }
 
     @Test
@@ -131,9 +131,8 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".serviceName." + SERVICE_NAME + ".staleDataRetained.nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertEquals(2, histogram.getCount(), "Histogram should have 2 updates");
-        assertEquals(4, histogram.getSnapshot().getMax(), "Histogram max should be 4 (latest max)");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertEquals(4, gauge.getValue(), "Gauge should expose latest value");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -141,13 +140,13 @@ class MetricRecorderTest {
     // ─────────────────────────────────────────────────────────────────────────
 
     @Test
-    void recordServiceRegistryUpdateNodeCount_createsHistogramWithCorrectName() {
+    void recordServiceRegistryUpdateNodeCount_createsGaugeWithCorrectName() {
         MetricRecorder.recordServiceRegistryUpdateNodeCount(SERVICE_NAME, DataStoreType.ZK, UPSTREAM_ID, 10);
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".serviceRegistryUpdate.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram, "serviceRegistryUpdate nodeCount histogram should be created");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge, "serviceRegistryUpdate nodeCount gauge should be created");
     }
 
     @Test
@@ -156,10 +155,9 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.HTTP.dataSource." + UPSTREAM_ID
                 + ".serviceRegistryUpdate.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram);
-        assertEquals(1, histogram.getCount(), "Histogram should have one update");
-        assertEquals(15, histogram.getSnapshot().getMax(), "Histogram max should equal size passed (15)");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge);
+        assertEquals(15, gauge.getValue(), "Gauge should expose latest size");
     }
 
     @Test
@@ -168,9 +166,9 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".serviceRegistryUpdate.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram);
-        assertEquals(0, histogram.getSnapshot().getMax(), "Histogram max should be 0 when no valid nodes");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge);
+        assertEquals(0, gauge.getValue(), "Gauge should expose zero when no valid nodes");
     }
 
     @Test
@@ -189,9 +187,8 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.DROVE.dataSource." + UPSTREAM_ID
                 + ".serviceRegistryUpdate.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertEquals(2, histogram.getCount(), "Histogram should have 2 updates");
-        assertEquals(8, histogram.getSnapshot().getMax(), "Histogram max should be 8");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertEquals(8, gauge.getValue(), "Gauge should expose latest value");
     }
 
     @Test
@@ -204,10 +201,10 @@ class MetricRecorderTest {
         val httpHistName = PACKAGE_PREFIX + ".dataStoreType.HTTP.dataSource." + UPSTREAM_ID
                 + ".serviceRegistryUpdate.serviceName." + SERVICE_NAME + ".nodeCount";
 
-        assertNotNull(metricRegistry.getHistograms().get(zkHistName), "ZK histogram should exist");
-        assertNotNull(metricRegistry.getHistograms().get(httpHistName), "HTTP histogram should exist");
-        assertEquals(5, metricRegistry.getHistograms().get(zkHistName).getSnapshot().getMax());
-        assertEquals(10, metricRegistry.getHistograms().get(httpHistName).getSnapshot().getMax());
+        assertNotNull(metricRegistry.getGauges().get(zkHistName), "ZK gauge should exist");
+        assertNotNull(metricRegistry.getGauges().get(httpHistName), "HTTP gauge should exist");
+        assertEquals(5, metricRegistry.getGauges().get(zkHistName).getValue());
+        assertEquals(10, metricRegistry.getGauges().get(httpHistName).getValue());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -215,13 +212,13 @@ class MetricRecorderTest {
     // ─────────────────────────────────────────────────────────────────────────
 
     @Test
-    void recordNodesFetchedCount_createsHistogramWithCorrectName() {
+    void recordNodesFetchedCount_createsGaugeWithCorrectName() {
         MetricRecorder.recordNodesFetchedCount(SERVICE_NAME, DataStoreType.ZK, UPSTREAM_ID, 6);
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram, "listNodes nodeCount histogram should be created");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge, "listNodes nodeCount gauge should be created");
     }
 
     @Test
@@ -230,10 +227,9 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.HTTP.dataSource." + UPSTREAM_ID
                 + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram);
-        assertEquals(1, histogram.getCount(), "Histogram should have one update");
-        assertEquals(20, histogram.getSnapshot().getMax(), "Histogram max should equal size passed (20)");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge);
+        assertEquals(20, gauge.getValue(), "Gauge should expose latest size");
     }
 
     @Test
@@ -242,9 +238,9 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertNotNull(histogram);
-        assertEquals(0, histogram.getSnapshot().getMax(), "Histogram max should be 0 when no nodes fetched");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge);
+        assertEquals(0, gauge.getValue(), "Gauge should expose zero when no nodes fetched");
     }
 
     @Test
@@ -263,9 +259,8 @@ class MetricRecorderTest {
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertEquals(2, histogram.getCount(), "Histogram should have 2 updates");
-        assertEquals(9, histogram.getSnapshot().getMax(), "Histogram max should be 9");
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertEquals(9, gauge.getValue(), "Gauge should expose latest value");
     }
 
     @Test
@@ -278,22 +273,22 @@ class MetricRecorderTest {
         val histNameB = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource.upstream-b"
                 + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
 
-        assertNotNull(metricRegistry.getHistograms().get(histNameA), "Histogram for upstream-a should exist");
-        assertNotNull(metricRegistry.getHistograms().get(histNameB), "Histogram for upstream-b should exist");
-        assertEquals(3, metricRegistry.getHistograms().get(histNameA).getSnapshot().getMax());
-        assertEquals(7, metricRegistry.getHistograms().get(histNameB).getSnapshot().getMax());
+        assertNotNull(metricRegistry.getGauges().get(histNameA), "Gauge for upstream-a should exist");
+        assertNotNull(metricRegistry.getGauges().get(histNameB), "Gauge for upstream-b should exist");
+        assertEquals(3, metricRegistry.getGauges().get(histNameA).getValue());
+        assertEquals(7, metricRegistry.getGauges().get(histNameB).getValue());
     }
 
     @Test
-    void nodeCountMetrics_useBoundedReservoirs() {
+    void nodeCountMetrics_useLatestValueGauges() {
         IntStream.range(0, 5_000)
                 .forEach(i -> MetricRecorder.recordNodesFetchedCount(SERVICE_NAME, DataStoreType.ZK, UPSTREAM_ID, i));
 
         val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
                 + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
-        val histogram = metricRegistry.getHistograms().get(histName);
-        assertEquals(5_000, histogram.getCount());
-        assertTrue(histogram.getSnapshot().size() <= 64);
+        val gauge = metricRegistry.getGauges().get(histName);
+        assertNotNull(gauge);
+        assertEquals(4_999, gauge.getValue());
     }
 
 }
