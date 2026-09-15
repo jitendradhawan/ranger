@@ -68,6 +68,7 @@ public class MetricRecorder {
   public static void recordZombieNodeFound(String serviceName) {
     if (registry() != null) {
       registry().meter(MetricRegistry.name(PACKAGE_PREFIX, ZOMBIE_NODES)).mark();
+      registry().meter(MetricRegistry.name(PACKAGE_PREFIX, ZOMBIE_NODES, SERVICE_NAME, serviceName)).mark();
     }
   }
 
