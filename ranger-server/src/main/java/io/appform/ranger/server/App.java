@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.hub.server.bundle.RangerHubServerBundle;
 import io.appform.ranger.hub.server.bundle.configuration.RangerServerConfiguration;
 import io.dropwizard.core.Application;
@@ -37,7 +36,6 @@ public class App extends Application<AppConfig> {
 
     @Override
     public void initialize(Bootstrap<AppConfig> bootstrap) {
-        MetricRecorder.initialize(bootstrap.getMetricRegistry());
         bootstrap.addBundle(new RangerHubServerBundle<>() {
             @Override
             protected RangerServerConfiguration getRangerConfiguration(AppConfig configuration) {

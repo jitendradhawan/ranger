@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -282,4 +283,17 @@ class MetricRecorderTest {
         assertEquals(3, metricRegistry.getHistograms().get(histNameA).getSnapshot().getMax());
         assertEquals(7, metricRegistry.getHistograms().get(histNameB).getSnapshot().getMax());
     }
+
+    @Test
+    void nodeCountMetrics_useBoundedReservoirs() {
+        IntStream.range(0, 5_000)
+                .forEach(i -> MetricRecorder.recordNodesFetchedCount(SERVICE_NAME, DataStoreType.ZK, UPSTREAM_ID, i));
+
+        val histName = PACKAGE_PREFIX + ".dataStoreType.ZK.dataSource." + UPSTREAM_ID
+                + ".listNodes.serviceName." + SERVICE_NAME + ".nodeCount";
+        val histogram = metricRegistry.getHistograms().get(histName);
+        assertEquals(5_000, histogram.getCount());
+        assertTrue(histogram.getSnapshot().size() <= 64);
+    }
+
 }

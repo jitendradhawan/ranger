@@ -1,7 +1,10 @@
 package io.appform.ranger.core.util;
 
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.UniformReservoir;
 import io.appform.ranger.core.model.DataStoreType;
+import lombok.val;
 import lombok.experimental.UtilityClass;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,6 +45,8 @@ public class MetricRecorder {
 
   private static final AtomicReference<MetricRegistry> metricRegistry = new AtomicReference<>();
 
+  private static final int NODE_COUNT_RESERVOIR_SIZE = 64;
+
   public static void initialize(MetricRegistry registry) {
     metricRegistry.set(registry);
   }
@@ -50,10 +55,19 @@ public class MetricRecorder {
     return metricRegistry.get();
   }
 
+  private static Histogram nodeCountHistogram(String name) {
+    return registry().histogram(name, () -> new Histogram(new UniformReservoir(NODE_COUNT_RESERVOIR_SIZE)));
+  }
+
+  public static void recordUnknownServiceRequest() {
+    if (registry() != null) {
+      registry().meter(MetricRegistry.name(PACKAGE_PREFIX, "nodeRequests", "unknownService")).mark();
+    }
+  }
+
   public static void recordZombieNodeFound(String serviceName) {
     if (registry() != null) {
       registry().meter(MetricRegistry.name(PACKAGE_PREFIX, ZOMBIE_NODES)).mark();
-      registry().meter(MetricRegistry.name(PACKAGE_PREFIX, ZOMBIE_NODES, SERVICE_NAME, serviceName)).mark();
     }
   }
 
@@ -88,8 +102,9 @@ public class MetricRecorder {
               DATA_SOURCE, upstreamId, STALE_DATA_RETAINED)).mark();
       registry().meter(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
               DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED)).mark();
-      registry().histogram(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-              DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED, NODE_COUNT)).update(size);
+      val metricName = MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, upstreamId, SERVICE_NAME, serviceName, STALE_DATA_RETAINED, NODE_COUNT);
+      nodeCountHistogram(metricName).update(size);
     }
   }
 
@@ -249,31 +264,31 @@ public class MetricRecorder {
 
   public static void recordServiceNodesReturned(String serviceName, int serviceNodes) {
     if (registry() != null) {
-      registry().histogram(MetricRegistry.name(PACKAGE_PREFIX, SERVICE_NAME,
-              serviceName, "nodesReturned")).update(serviceNodes);
+      val metricName = MetricRegistry.name(PACKAGE_PREFIX, SERVICE_NAME, serviceName, "nodesReturned");
+      nodeCountHistogram(metricName).update(serviceNodes);
     }
   }
 
   public static void recordServicesReturned(int services) {
     if (registry() != null) {
-      registry().histogram(MetricRegistry.name(PACKAGE_PREFIX,"servicesReturned"))
+      nodeCountHistogram(MetricRegistry.name(PACKAGE_PREFIX,"servicesReturned"))
               .update(services);
     }
   }
 
   public static void recordServiceRegistryUpdateNodeCount(String serviceName, DataStoreType dataStoreType, String upstreamId, int size) {
     if (registry() != null) {
-      registry().histogram(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-                      DATA_SOURCE, upstreamId, "serviceRegistryUpdate", SERVICE_NAME, serviceName, NODE_COUNT))
-              .update(size);
+      val metricName = MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, upstreamId, "serviceRegistryUpdate", SERVICE_NAME, serviceName, NODE_COUNT);
+      nodeCountHistogram(metricName).update(size);
     }
   }
 
   public static void recordNodesFetchedCount(String serviceName, DataStoreType dataStoreType, String upstreamId, int size) {
     if (registry() != null) {
-      registry().histogram(MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
-                      DATA_SOURCE, upstreamId, LIST_NODES, SERVICE_NAME, serviceName, NODE_COUNT))
-              .update(size);
+      val metricName = MetricRegistry.name(PACKAGE_PREFIX, DATA_STORE_TYPE, dataStoreType.name(),
+              DATA_SOURCE, upstreamId, LIST_NODES, SERVICE_NAME, serviceName, NODE_COUNT);
+      nodeCountHistogram(metricName).update(size);
     }
   }
 }

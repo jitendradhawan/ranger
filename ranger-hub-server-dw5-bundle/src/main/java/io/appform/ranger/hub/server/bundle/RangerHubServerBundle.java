@@ -62,6 +62,11 @@ public abstract class RangerHubServerBundle<U extends Configuration>
 
     protected abstract RangerServerConfiguration getRangerConfiguration(U configuration);
 
+    @Override
+    protected boolean withMetricsEnabled(U configuration) {
+        return getRangerConfiguration(configuration).isMetricsEnabled();
+    }
+
     @SuppressWarnings("java:S1172")
     protected ServiceNodeSelector<ShardInfo> getServiceNodeSelector(U configuration) {
         return DEFAULT_NODE_SELECTOR;

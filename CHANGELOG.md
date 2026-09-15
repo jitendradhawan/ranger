@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Made the process-wide metric registry reference thread-safe. Metric recording remains a no-op until a registry is initialized.
+- Bounded node-count metric reservoirs and added lifecycle cleanup for service-scoped metrics to prevent unbounded memory growth during request, service, and upstream churn.
+- Added standalone server `metricsEnabled` configuration and moved metric initialization under bundle lifecycle management.
 - Made `PathBuilder.REGISTERED_SERVICES_PATH` immutable.
 - Changed repeated ID-generator node ID assignment to throw `IllegalStateException`.
 

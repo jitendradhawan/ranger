@@ -188,10 +188,6 @@ class ServiceRegistryUpdaterMetricsIntegrationTest {
         assertNotNull(zombieMeter, "Zombie nodes meter should exist");
         assertTrue(zombieMeter.getCount() >= 1);
 
-        val svcZombieMeter = metricRegistry.getMeters().get("io.appform.ranger.zombieNodes.serviceName.test-svc");
-        assertNotNull(svcZombieMeter);
-        assertTrue(svcZombieMeter.getCount() >= 1);
-
         // Also verify success timer still recorded
         val timerName = "io.appform.ranger.dataStoreType.ZK.dataSource." + METRIC_ID + ".nodeDataRefresh.success";
         val timer = metricRegistry.getTimers().get(timerName);
