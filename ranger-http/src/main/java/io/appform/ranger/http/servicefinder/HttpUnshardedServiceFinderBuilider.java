@@ -54,11 +54,10 @@ public class HttpUnshardedServiceFinderBuilider<T>
     }
 
     @Override
-    protected NodeDataSource<T, HTTPResponseDataDeserializer<T>> dataSource(Service service) {
-        return new HttpNodeDataSource<>(service, clientConfig,
+    protected NodeDataSource<T, HTTPResponseDataDeserializer<T>> dataSource(String upstreamId, Service service) {
+        return new HttpNodeDataSource<>(upstreamId, service, clientConfig,
                                         Objects.requireNonNullElseGet(httpClient,
                                                                       () -> RangerHttpUtils.httpClient(clientConfig, mapper)));
     }
 
 }
-
