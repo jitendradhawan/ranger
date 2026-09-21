@@ -36,7 +36,8 @@ public class HttpUnshardedServiceFinderBuilider<T>
     public HttpUnshardedServiceFinderBuilider<T> withClientConfig(final HttpClientConfig clientConfig) {
         this.clientConfig = clientConfig;
         return this;
-}
+    }
+
     public HttpUnshardedServiceFinderBuilider<T> withObjectMapper(final ObjectMapper mapper) {
         this.mapper = mapper;
         return this;
