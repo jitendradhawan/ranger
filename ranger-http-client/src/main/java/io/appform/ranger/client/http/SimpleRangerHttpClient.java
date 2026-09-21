@@ -71,8 +71,7 @@ public class SimpleRangerHttpClient<T> extends AbstractRangerClient<T, ListBased
                 .build();
         this.serviceFinder.start();
         log.info("Started the service finder");
-    }
-
+}
     @Override
     public void stop() {
         log.info("Stopping the service finder");
