@@ -11,22 +11,11 @@ All notable changes to this project will be documented in this file.
 - Changed public constructors for HTTP, Drove, and ZooKeeper data sources, sinks, transports, and finder factories to accept an upstream ID. Direct callers must update constructor invocations.
 - Removed `DEFAULT_NAMESPACE` and `DEFAULT_HOST` from the discovery-bundle `Constants`; use the corresponding discovery-core constants instead.
 
-### Added
+### New Features
 - Added Dropwizard metrics instrumentation for ZooKeeper, HTTP, and Drove upstream availability, service and node fetches, HTTP response statuses, parsing and serialization failures, refresh latency and failures, stale-data retention, provider updates, health checks, and Drove event-driven cache updates.
 - Added node-count histograms for fetched and accepted nodes, retained stale nodes, and services and nodes returned by Ranger server APIs.
 - Added datastore type and upstream ID dimensions to upstream-specific metric names under `io.appform.ranger`.
 - Added `metricsEnabled` configuration for service-discovery bundles and metrics enablement hooks for server bundles. Metrics are enabled by default for configuration-file and server-bundle usage.
-
-### Changed
-- Made the process-wide metric registry reference thread-safe. Metric recording remains a no-op until a registry is initialized.
-- Bounded node-count metric reservoirs and added lifecycle cleanup for service-scoped metrics to prevent unbounded memory growth during request, service, and upstream churn.
-- Added standalone server `metricsEnabled` configuration and moved metric initialization under bundle lifecycle management.
-- Made `PathBuilder.REGISTERED_SERVICES_PATH` immutable.
-- Changed repeated ID-generator node ID assignment to throw `IllegalStateException`.
-
-### Fixed
-- Fixed ID-generator collision handling under concurrent generation.
-- Fixed ID generation timing to use nanosecond precision.
 
 ## [1.1.2]
 - Check if Zookeeper Client is connected to consider ZkNodeDataSource as active
