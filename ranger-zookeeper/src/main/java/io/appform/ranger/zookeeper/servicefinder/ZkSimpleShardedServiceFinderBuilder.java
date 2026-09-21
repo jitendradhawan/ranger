@@ -38,8 +38,10 @@ import static java.util.Objects.requireNonNull;
  */
 @Slf4j
 public class ZkSimpleShardedServiceFinderBuilder<T> extends SimpleShardedServiceFinderBuilder<T, ZkSimpleShardedServiceFinderBuilder<T>, ZkNodeDataDeserializer<T>> {
+
     protected CuratorFramework curatorFramework;
     protected String connectionString;
+
 
     public ZkSimpleShardedServiceFinderBuilder<T> withCuratorFramework(CuratorFramework curatorFramework) {
         this.curatorFramework = curatorFramework;
