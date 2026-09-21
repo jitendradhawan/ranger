@@ -16,10 +16,11 @@
 package io.appform.ranger.drove.servicefinder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.DataStoreType;
+import io.appform.ranger.core.model.NodeDataSource;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
+import io.appform.ranger.core.util.MetricRecorder;
 import io.appform.ranger.drove.common.DroveCommunicationException;
 import io.appform.ranger.drove.common.DroveCommunicator;
 import io.appform.ranger.drove.common.DroveNodeDataStoreConnector;
@@ -41,24 +42,25 @@ import static java.util.Objects.requireNonNull;
 public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> extends DroveNodeDataStoreConnector<T> implements NodeDataSource<T, D> {
 
     private final Service service;
-    private final String upstreamId;
 
     public DroveNodeDataSource(
-            String upstreamId,
             Service service,
             final DroveUpstreamConfig config,
             ObjectMapper mapper,
             DroveCommunicator droveClient) {
         super(config, mapper, droveClient);
         this.service = service;
-        this.upstreamId = upstreamId;
     }
 
     @Override
-    public String getUpstreamId() { return upstreamId; }
+    public String getUpstreamId() {
+        return upstreamId;
+    }
 
     @Override
-    public DataStoreType getDataStoreType() { return DataStoreType.DROVE; }
+    public DataStoreType getDataStoreType() {
+        return DataStoreType.DROVE;
+    }
 
     @Override
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {
@@ -69,16 +71,17 @@ public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> 
             val nodes = deserializer.deserialize(
                     Objects.requireNonNull(exposedAppInfos, "Unexpected empty response from server"));
             return Optional.of(nodes);
-        }
-        catch (DroveCommunicationException e) {
-            log.error("Drove communication error", e);
+        } catch (DroveCommunicationException e) {
+            log.error("Drove communication error while refreshing data for service : {}", service.getServiceName(),  e);
             return Optional.empty(); //In case of refresh failure, maintain old list
         }
     }
 
     @Override
     public boolean isActive() {
-        return droveClient.healthy();
+        var healthy = droveClient.healthy();
+        MetricRecorder.recordNodeDataSourceStatus(DataStoreType.DROVE, upstreamId, healthy);
+        return healthy;
     }
 
 }
