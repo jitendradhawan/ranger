@@ -62,6 +62,11 @@ public abstract class RangerHubServerBundle<U extends Configuration>
 
     protected abstract RangerServerConfiguration getRangerConfiguration(U configuration);
 
+    @Override
+    protected boolean withMetricsEnabled(U configuration) {
+        return getRangerConfiguration(configuration).isMetricsEnabled();
+    }
+
     @SuppressWarnings("java:S1172")
     protected ServiceNodeSelector<ShardInfo> getServiceNodeSelector(U configuration) {
         return DEFAULT_NODE_SELECTOR;
@@ -111,6 +116,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
                     .build();
             curatorFrameworks.add(curatorFramework);
             return UnshardedRangerZKHubClient.<ShardInfo>builder()
+                    .upstreamId(zkConfiguration.getId())
                     .namespace(namespace)
                     .connectionString(zookeeper)
                     .curatorFramework(curatorFramework)
@@ -137,6 +143,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
         private RangerHubClient<ShardInfo, ListBasedServiceRegistry<ShardInfo>> getHttpHubClient(
                 HttpClientConfig httpClientConfig, RangerHttpUpstreamConfiguration httpConfiguration) {
             return UnshardedRangerHttpHubClient.<ShardInfo>builder()
+                    .upstreamId(httpClientConfig.getId())
                     .namespace(namespace)
                     .mapper(getMapper())
                     .clientConfig(httpClientConfig)
@@ -166,6 +173,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
                                                            DroveUpstreamConfig.DEFAULT_REGION_TAG_NAME);
             val droveCommunicator = RangerDroveUtils.<ShardInfo>buildDroveClient(namespace, droveConfig, getMapper());
             return UnshardedRangerDroveHubClient.<ShardInfo>builder()
+                    .upstreamId(droveConfig.getId())
                     .namespace(namespace)
                     .mapper(getMapper())
                     .clientConfig(droveConfig)
@@ -211,9 +219,7 @@ public abstract class RangerHubServerBundle<U extends Configuration>
 
         @Override
         public List<RangerHubClient<ShardInfo, ListBasedServiceRegistry<ShardInfo>>> visit(RangerZkUpstreamConfiguration rangerZkConfiguration) {
-            return rangerZkConfiguration.getZookeepers().stream()
-                    .map(zk -> addCuratorAndGetZkHubClient(zk, rangerZkConfiguration))
-                    .toList();
+            return List.of(addCuratorAndGetZkHubClient(rangerZkConfiguration.getZookeeper(), rangerZkConfiguration));
         }
 
         @Override
