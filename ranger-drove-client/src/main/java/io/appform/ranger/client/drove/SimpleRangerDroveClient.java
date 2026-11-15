@@ -58,6 +58,7 @@ public class SimpleRangerDroveClient<T> extends AbstractRangerClient<T, ListBase
         requireNonNull(deserializer, "deserializer can't be null");
 
         this.serviceFinder = DroveServiceFinderBuilders.<T>droveUnshardedServiceFinderBuilider()
+                .withUpstreamId(clientConfig.getId())
                 .withClientConfig(clientConfig)
                 .withServiceName(serviceName)
                 .withNamespace(namespace)
@@ -69,8 +70,7 @@ public class SimpleRangerDroveClient<T> extends AbstractRangerClient<T, ListBase
                 .build();
         this.serviceFinder.start();
         log.info("Started the service finder");
-    }
-
+}
     @Override
     public void stop() {
         log.info("Stopping the service finder");
@@ -80,4 +80,3 @@ public class SimpleRangerDroveClient<T> extends AbstractRangerClient<T, ListBase
     }
 
 }
-

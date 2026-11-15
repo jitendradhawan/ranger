@@ -16,6 +16,7 @@
 package io.appform.ranger.zookeeper.serviceprovider;
 
 import io.appform.ranger.core.model.NodeDataSink;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.core.util.Exceptions;
@@ -37,10 +38,17 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ZkNodeDataSink<T, S extends ZkNodeDataSerializer<T>> extends ZkNodeDataStoreConnector<T> implements NodeDataSink<T,S> {
     public ZkNodeDataSink(
+            String upstreamId,
             Service service,
             CuratorFramework curatorFramework) {
-        super(service, curatorFramework, ZkStoreType.SINK);
+        super(upstreamId, service, curatorFramework, ZkStoreType.SINK);
     }
+
+    @Override
+    public String getUpstreamId() { return upstreamId; }
+
+    @Override
+    public DataStoreType getDataStoreType() { return DataStoreType.ZK; }
 
     @Override
     public void updateState(S serializer, ServiceNode<T> serviceNode) {

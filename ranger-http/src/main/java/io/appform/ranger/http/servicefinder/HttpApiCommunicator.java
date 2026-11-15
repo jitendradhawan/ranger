@@ -47,6 +47,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
     private final AtomicBoolean upstreamAvailable = new AtomicBoolean(true);
     private final ScheduledExecutorService resetter = Executors.newSingleThreadScheduledExecutor();
 
+    private final String upstreamId;
     @Getter
     private final OkHttpClient httpClient;
     private final HttpClientConfig config;
@@ -54,6 +55,7 @@ public class HttpApiCommunicator<T> implements HttpCommunicator<T> {
 
     public HttpApiCommunicator(OkHttpClient httpClient, HttpClientConfig config, ObjectMapper mapper) {
         Objects.requireNonNull(mapper, "mapper has not been set for node data");
+        this.upstreamId = config.getId();
         this.httpClient = httpClient;
         this.config = config;
         this.mapper = mapper;

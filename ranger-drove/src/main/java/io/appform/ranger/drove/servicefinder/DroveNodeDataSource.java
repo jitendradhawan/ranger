@@ -17,6 +17,7 @@ package io.appform.ranger.drove.servicefinder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.ranger.core.model.NodeDataSource;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.drove.common.DroveCommunicationException;
@@ -49,6 +50,12 @@ public class DroveNodeDataSource<T, D extends DroveResponseDataDeserializer<T>> 
         super(config, mapper, droveClient);
         this.service = service;
     }
+
+    @Override
+    public String getUpstreamId() { return upstreamId; }
+
+    @Override
+    public DataStoreType getDataStoreType() { return DataStoreType.DROVE; }
 
     @Override
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {

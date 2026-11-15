@@ -57,6 +57,7 @@ public class SimpleRangerHttpClient<T> extends AbstractRangerClient<T, ListBased
         requireNonNull(deserializer, "deserializer can't be null");
 
         this.serviceFinder = HttpServiceFinderBuilders.<T>httpUnshardedServiceFinderBuilider()
+                .withUpstreamId(clientConfig.getId())
                 .withClientConfig(clientConfig)
                 .withServiceName(serviceName)
                 .withNamespace(namespace)
@@ -68,8 +69,7 @@ public class SimpleRangerHttpClient<T> extends AbstractRangerClient<T, ListBased
                 .build();
         this.serviceFinder.start();
         log.info("Started the service finder");
-    }
-
+}
     @Override
     public void stop() {
         log.info("Stopping the service finder");
@@ -79,4 +79,3 @@ public class SimpleRangerHttpClient<T> extends AbstractRangerClient<T, ListBased
     }
 
 }
-

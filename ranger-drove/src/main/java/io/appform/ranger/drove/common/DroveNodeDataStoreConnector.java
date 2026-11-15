@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DroveNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
 
+    protected final String upstreamId;
     protected final DroveUpstreamConfig config;
     protected final ObjectMapper mapper;
     protected final DroveCommunicator droveClient;
@@ -35,6 +36,7 @@ public class DroveNodeDataStoreConnector<T> implements NodeDataStoreConnector<T>
             final DroveUpstreamConfig config,
             final ObjectMapper mapper,
             final DroveCommunicator droveClient) {
+        this.upstreamId = config.getId();
         this.config = config;
         this.mapper = mapper;
         this.droveClient = droveClient;

@@ -84,6 +84,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.appform.ranger.discovery.bundle.Constants.LOCAL_ADDRESSES;
+import static io.appform.ranger.discovery.core.Constants.DEFAULT_DATA_SINK_ID;
 import static java.util.Objects.requireNonNull;
 
 
@@ -254,6 +255,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                                                                              ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> shardSelector,
                                                                                              final ServiceNodeSelector<ShardInfo> nodeSelector) {
         return SimpleRangerZKClient.<ShardInfo>builder()
+                .upstreamId(DEFAULT_DATA_SINK_ID)
                 .curatorFramework(curator)
                 .namespace(namespace)
                 .serviceName(serviceName)
@@ -299,6 +301,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .setNext(new RoutingWeightHandler<>(getWeightSupplier().get()))
                 .setNext(new StartupTimeHandler<>());
         val serviceProviderBuilder = ServiceProviderBuilders.<ShardInfo>shardedServiceProviderBuilder()
+                .withUpstreamId(DEFAULT_DATA_SINK_ID)
                 .withCuratorFramework(curator)
                 .withNamespace(namespace)
                 .withServiceName(serviceName)
