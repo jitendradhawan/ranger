@@ -17,7 +17,6 @@
 package io.appform.ranger.discovery.core;
 
 import com.google.common.base.Strings;
-import javax.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
