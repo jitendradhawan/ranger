@@ -34,9 +34,11 @@ import java.util.Map;
  */
 @Slf4j
 public class DroveOkHttpTransport implements DroveHttpTransport {
+    private final String upstreamId;
     private final OkHttpClient httpClient;
 
-    public DroveOkHttpTransport(final OkHttpClient httpClient) {
+    public DroveOkHttpTransport(String upstreamId, final OkHttpClient httpClient) {
+        this.upstreamId = upstreamId;
         this.httpClient = httpClient;
         log.info("Okhttp based transport initialized");
     }

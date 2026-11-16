@@ -16,6 +16,7 @@
 package io.appform.ranger.zookeeper.servicefinder;
 
 import io.appform.ranger.core.model.NodeDataSource;
+import io.appform.ranger.core.model.DataStoreType;
 import io.appform.ranger.core.model.Service;
 import io.appform.ranger.core.model.ServiceNode;
 import io.appform.ranger.zookeeper.common.ZkNodeDataStoreConnector;
@@ -42,10 +43,17 @@ import static java.util.Objects.requireNonNull;
 public class ZkNodeDataSource<T, D extends ZkNodeDataDeserializer<T>> extends ZkNodeDataStoreConnector<T> implements NodeDataSource<T, D> {
 
     public ZkNodeDataSource(
+            String upstreamId,
             Service service,
             CuratorFramework curatorFramework) {
-        super(service, curatorFramework, ZkStoreType.SOURCE);
+        super(upstreamId, service, curatorFramework, ZkStoreType.SOURCE);
     }
+
+    @Override
+    public String getUpstreamId() { return upstreamId; }
+
+    @Override
+    public DataStoreType getDataStoreType() { return DataStoreType.ZK; }
 
     @Override
     public Optional<List<ServiceNode<T>>> refresh(D deserializer) {

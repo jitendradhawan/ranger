@@ -48,6 +48,7 @@ import java.util.stream.StreamSupport;
  */
 @Slf4j
 public class DroveApiCommunicator implements DroveCommunicator {
+    private final String upstreamId;
     private final String namespace;
     private final DroveUpstreamConfig config;
     private final DroveClient droveClient;
@@ -63,6 +64,7 @@ public class DroveApiCommunicator implements DroveCommunicator {
         this.config = config;
         this.droveClient = droveClient;
         this.mapper = mapper;
+        this.upstreamId = config.getId();
         resetter.scheduleWithFixedDelay(() -> upstreamAvailable.set(true), 0, 60, TimeUnit.SECONDS);
     }
 

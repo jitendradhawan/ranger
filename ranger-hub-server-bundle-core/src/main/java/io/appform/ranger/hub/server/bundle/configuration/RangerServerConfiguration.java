@@ -43,6 +43,9 @@ public class RangerServerConfiguration {
 
     Set<String> excludedServices;
 
+    @Builder.Default
+    boolean metricsEnabled = true;
+
     public Set<String> getExcludedServices() {
         return Objects.requireNonNullElseGet(excludedServices, Set::of);
     }

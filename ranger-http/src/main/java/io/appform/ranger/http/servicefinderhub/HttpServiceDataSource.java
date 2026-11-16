@@ -28,8 +28,11 @@ import java.util.Objects;
 @Slf4j
 public class HttpServiceDataSource<T> extends HttpNodeDataStoreConnector<T> implements ServiceDataSource {
 
-    public HttpServiceDataSource(HttpClientConfig config, HttpCommunicator<T> httpClient) {
+    private final String upstreamId;
+
+    public HttpServiceDataSource(String upstreamId, HttpClientConfig config, HttpCommunicator<T> httpClient) {
         super(config, httpClient);
+        this.upstreamId = upstreamId;
     }
 
     @Override

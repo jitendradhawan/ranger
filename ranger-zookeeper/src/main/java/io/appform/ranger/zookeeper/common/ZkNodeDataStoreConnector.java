@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
 
+    protected final String upstreamId;
     @Getter(AccessLevel.PROTECTED)
     protected final Service service;
     @Getter(AccessLevel.PROTECTED)
@@ -61,9 +62,10 @@ public class ZkNodeDataStoreConnector<T> implements NodeDataStoreConnector<T> {
             .build();
 
     protected ZkNodeDataStoreConnector(
-            final Service service,
+            String upstreamId, final Service service,
             final CuratorFramework curatorFramework,
             final ZkStoreType storeType) {
+        this.upstreamId = upstreamId;
         this.service = service;
         this.curatorFramework = curatorFramework;
         this.storeType = storeType;

@@ -37,14 +37,17 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ZkServiceDataSource implements ServiceDataSource {
 
+    private final String upstreamId;
     private final String namespace;
     private final String connectionString;
     private CuratorFramework curatorFramework;
     private boolean curatorProvided;
 
-    public ZkServiceDataSource(String namespace,
+    public ZkServiceDataSource(String upstreamId,
+                               String namespace,
                                String connectionString,
                                CuratorFramework curatorFramework){
+        this.upstreamId = upstreamId;
         this.namespace = namespace;
         this.connectionString = connectionString;
         this.curatorFramework = curatorFramework;

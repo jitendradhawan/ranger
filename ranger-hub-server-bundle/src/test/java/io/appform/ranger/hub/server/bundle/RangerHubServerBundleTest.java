@@ -67,6 +67,7 @@ class RangerHubServerBundleTest {
                     .upstreams(List.of(
                             new RangerHttpUpstreamConfiguration()
                                     .setHttpClientConfigs(List.of(HttpClientConfig.builder()
+                                            .id("test-metric")
                                             .host("localhost")
                                             .port(wm.getHttpPort())
                                             .build()))
