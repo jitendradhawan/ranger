@@ -72,11 +72,12 @@ class ServiceFinderHubTest {
 
     @Test
     void testTimeoutOnHubStartup() {
+        // Allow five seconds for startup while the finder takes sixty seconds to build.
         var testServiceFinderHub = new TestServiceFinderHubBuilder()
                 .withServiceDataSource(new DynamicDataSource(List.of(new Service("NS", "SERVICE"))))
                 .withServiceFinderFactory(new TestServiceFinderFactory())
-                .withRefreshFrequencyMs(5_000)
-                .withHubStartTimeout(1_000)
+                .withRefreshFrequencyMs(10_000)
+                .withHubStartTimeout(5_000)
                 .withServiceRefreshTimeout(10_000)
                 .build();
 
